@@ -39,7 +39,7 @@ stringValue: ${getStringValue(0)}
 """
 
 fun BluetoothGattDescriptor.print(): String = """UUID: $uuid
-permissions: $permissionsString
+permissions: $permissions
 value: $value
 characteristic: ${characteristic?.print()}
 """
@@ -64,8 +64,11 @@ private val BluetoothGattCharacteristic.permissionsString: String get() {
     return "$permissions"
     //return permissionsString(permissions)
 }
+@Suppress("DEPRECATION")
+@Deprecated("Doesn't seem to work")
 private val BluetoothGattDescriptor.permissionsString: String get() = permissionsString(permissions)
 
+@Deprecated("Doesn't seem to work")
 private fun permissionsString(permissions: Int): String = StringBuilder().apply {
     if (permissions.hasFlag(PERMISSION_READ)) append("READ, ")
     if (permissions.hasFlag(PERMISSION_READ_ENCRYPTED)) append("READ_ENCRYPTED, ")
