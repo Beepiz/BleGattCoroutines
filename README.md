@@ -44,3 +44,6 @@ fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch(
     deviceConnection.close() // Close when no longer used it NOT optional 
 }
 ```
+
+## Download
+This library is not published on jcenter yet (should be done in January of 2018), but it's made of only 4 Kotlin files, so you can already try it out in your project pretty easily. 
