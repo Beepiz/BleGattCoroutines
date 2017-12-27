@@ -3,7 +3,7 @@ package com.beepiz.bluetooth.gattcoroutines.experimental
 import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.experimental.channels.consumeEach
 
-class Gate(locked: Boolean = false) {
+internal class Gate(locked: Boolean = false) {
 
     /** Internal value is true when the gate is locked */
     private val lockStateChannel = ConflatedBroadcastChannel<Boolean>(locked)
