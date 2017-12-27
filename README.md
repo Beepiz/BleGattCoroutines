@@ -27,6 +27,20 @@ In fact, RxJava2 methods count is higher than the sum of [Kotlin's stdlib and ko
 _Note that this library is based on the coroutines feature of Kotlin, as well as the `kotlinx.coroutines` library,
 which are both under the experimental status. Consequently, this libray inherits this experimental status. Also,
 we are expecting to make a few API changes based on your feedback and real world usages to improve this library._
+
+Here's a basic example that just logs the characteristics (using [the `print()` method defined here](https://github.com/Beepiz/BleGattCoroutines/blob/e033fdeb82738bc490fa85968ad1ebc8482d2219/app/src/main/java/com/beepiz/blegattcoroutines/sample/extensions/GattPrint.kt#L12)):
 ```kotlin
-TODO("Show a digest usage example snippet")
+fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch(UI) {
+    val deviceConnection = GattConnection(bluetoothDevice = this@logGattServices)
+    deviceConnection.connect().await() // Await is optional
+    val gattServices = deviceConnection.discoverServices() // Suspends until completed
+    gattServices.forEach {
+        it.characteristics.forEach {
+            deviceConnection.readCharacteristic(it) // Suspends until characteristic is read
+        }
+        Log.v(tag, it.print(printCharacteristics = true))
+    }
+    deviceConnection.disconnect().await() // Disconnection is optional.
+    deviceConnection.close() // Close when no longer used it NOT optional 
+}
 ```
