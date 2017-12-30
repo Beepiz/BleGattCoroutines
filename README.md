@@ -1,5 +1,5 @@
 # BleGattCoroutines
-**Make Gatt Great Again!** This library allows easy and safer usage of BluetoothGatt in Android.
+**Make Gatt Great Again!** This library allows easy and safer usage of BluetoothGatt in Android. It has also been tested successfully on **Android Wear**, with the sample included in this repository. It should work similarly on other Android variants such as Android Things.
 
 It does so by taking advantage of the excellent coroutines feature in the Kotlin programming 
 language that allows to write asynchronous code in a sequential/synchronous style, which means, without
