@@ -1,1 +1,1 @@
-include ':app', ':blegattcoroutines', ':genericaccess'
+include ':app', ':blegattcoroutines', ':genericaccess', ':wear', ':common'

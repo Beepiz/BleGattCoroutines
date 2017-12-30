@@ -4,10 +4,11 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.Gravity
-import com.beepiz.blegattcoroutines.sample.extensions.activityScope
-import com.beepiz.blegattcoroutines.sample.viewdsl.*
-import com.beepiz.blegattcoroutines.sample.views.onClick
-import com.beepiz.blegattcoroutines.sample.views.padding
+import com.beepiz.blegattcoroutines.sample.common.MainViewModel
+import com.beepiz.blegattcoroutines.sample.common.extensions.activityScope
+import com.beepiz.blegattcoroutines.sample.common.viewdsl.*
+import com.beepiz.blegattcoroutines.sample.common.views.onClick
+import com.beepiz.blegattcoroutines.sample.common.views.padding
 
 @SuppressLint("SetTextI18n") // This is just a sample, English is enough.
 class MainActivity : AppCompatActivity() {

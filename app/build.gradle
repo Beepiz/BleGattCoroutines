@@ -21,35 +21,13 @@ android {
 }
 
 dependencies {
-    implementation project(":blegattcoroutines")
-    implementation project(":genericaccess")
-
-    // Kotlin
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-
-    // Coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutines_version"
-
-    // Android Architecture Components
-    implementation "android.arch.lifecycle:extensions:$arch_lifecycle_version"
-    kapt "android.arch.lifecycle:compiler:$arch_lifecycle_version"
+    implementation project(":common")
 
     // Android Support Libraries
     implementation "com.android.support:support-annotations:$supportLibs_version"
     implementation "com.android.support:appcompat-v7:$supportLibs_version"
-    implementation "com.android.support:design:$supportLibs_version"
     implementation "com.android.support:cardview-v7:$supportLibs_version"
     implementation "com.android.support:recyclerview-v7:$supportLibs_version"
-
-    // ConstraintLayout
-    implementation "com.android.support.constraint:constraint-layout:$constraintLayout_version"
-
-    // Splitties
-    implementation "xyz.louiscad.splitties:splitties-appctx:$splitties_version"
-    implementation "xyz.louiscad.splitties:splitties-concurrency:$splitties_version"
-
-    // Timber (log utility)
-    implementation "com.jakewharton.timber:timber:$timber_version"
 
     // Testing
     testImplementation 'junit:junit:4.12'
