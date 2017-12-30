@@ -24,8 +24,6 @@ inline suspend fun BluetoothDevice.useBasic(block: (GattConnection, List<Bluetoo
         val services = deviceConnection.discoverServices()
         Timber.i("Services discovered!")
         block(deviceConnection, services)
-        deviceConnection.disconnect().await()
-        Timber.i("Disconnected!")
     } catch (ignored: CancellationException) {
     } catch (e: Exception) {
         Timber.e(e)
