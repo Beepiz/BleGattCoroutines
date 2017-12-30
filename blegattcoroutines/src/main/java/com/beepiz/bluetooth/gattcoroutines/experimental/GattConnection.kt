@@ -59,6 +59,11 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
     private inline val isClosed get() = !isConnected && !connectionGate.isLocked
     private var closedException: ConnectionClosedException? = null
     val stateChangeChannel = ConflatedBroadcastChannel<StateChange>()
+
+    /**
+     * Receives all characteristic update notifications.
+     * See [setCharacteristicNotificationsEnabled].
+     */
     val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
 
     fun connect(): Deferred<Unit> {
@@ -118,6 +123,15 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
 
     suspend fun discoverServices() = gattRequest(servicesDiscoveryChannel) {
         gatt.discoverServices()
+    }
+
+    /**
+     * Enable or disable notifications/indications for the passed [characteristic].
+     * Once notifications are enabled for a characteristic, the [notifyChannel] will receive updated
+     * characteristic if the remote device indicates that is has changed.
+     */
+    fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean) {
+        gatt.setCharacteristicNotification(characteristic, enable).checkOperationInitiationSucceeded()
     }
 
     /**
