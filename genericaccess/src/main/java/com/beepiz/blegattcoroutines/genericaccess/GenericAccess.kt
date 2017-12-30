@@ -43,11 +43,11 @@ object GenericAccess {
      * Generates fully-fledged UUID from passed [shorthand] and standard Bluetooth UUID common base.
      */
     private fun gattUuid(shorthand: Short): UUID {
-        val assignedNumberMask = 0x0000_FFFF_0000_0000L
+        val assignedNumberMask = 0x0000_FFFF_0000_0000L // Prevents negative shorthand side-effects.
         val shifted16bits = shorthand.toLong() shl 32 and assignedNumberMask
-        val gattMostSigBits = 0x0000000000001000L
-        val gattLeastSigBits = -9223371485494954757 // 0x800000805f9b34fb
-        val mostSignificantBits: Long = gattMostSigBits or shifted16bits
-        return UUID(mostSignificantBits, gattLeastSigBits)
+        val commonBaseMostSigBits = 0x0000_0000_0000_1000L
+        val mostSigBits = commonBaseMostSigBits or shifted16bits
+        val commonBaseLeastSigBits = -9223371485494954757 // unsigned notation: 0x8000_00805f9b34fb
+        return UUID(mostSigBits, commonBaseLeastSigBits)
     }
 }
