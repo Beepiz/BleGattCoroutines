@@ -106,7 +106,7 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      * See [BluetoothGatt.requestConnectionPriority].
      *
      * Accepted values are [BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER],
-     * [BluetoothGatt.CONNECTION_PRIORITY_BALANCED] and
+     * [BluetoothGatt.CONNECTION_PRIORITY_BALANCED] (default) and
      * [BluetoothGatt.CONNECTION_PRIORITY_HIGH]. Read the documentation of the constant you use.
      *
      * Throws an [OperationInitiationFailedException] if the device is not connected.
