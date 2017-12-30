@@ -83,7 +83,7 @@ fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch(
 }
 ```
 
-The snippet below is the example you can find in the sample, powered by two extension methods for brevity (`deviceFor(…)` and `useBasic { device, services -> … }`. It also uses the `GenericAccess` object, which is the defition of the standard Bluetooth GATT "Generic access". It includes extension functions and properties for easy and readable usage. You can write a similar specification for any BLE device or `BluetoothGattService` you want.
+The snippet below is the example you can find in the sample, powered by two extension methods for brevity (`deviceFor(…)` and `useBasic { device, services -> … }`). It also uses the `GenericAccess` object, which is the defition of the standard Bluetooth GATT "Generic access". It includes extension functions and properties for easy and readable usage. You can write a similar specification for any BLE device or `BluetoothGattService` you want.
 ```kotlin
 private val myEddystoneUrlBeaconMacAddress = "F2:D6:43:93:70:7A"
 private val defaultDeviceMacAddress = myEddystoneUrlBeaconMacAddress
