@@ -2,8 +2,7 @@ package com.beepiz.bluetooth.gattcoroutines.experimental
 
 import android.bluetooth.*
 import android.os.Build
-import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
-import android.os.Build.VERSION_CODES.O
+import android.os.Build.VERSION_CODES.*
 import android.support.annotation.RequiresApi
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.android.UI
@@ -61,6 +60,21 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
     private var closedException: ConnectionClosedException? = null
     val stateChangeChannel = ConflatedBroadcastChannel<StateChange>()
     val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
+
+    /**
+     * Use this method only if needed, and do so carefully.
+     * See [BluetoothGatt.requestConnectionPriority].
+     *
+     * Accepted values are [BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER],
+     * [BluetoothGatt.CONNECTION_PRIORITY_BALANCED] and
+     * [BluetoothGatt.CONNECTION_PRIORITY_HIGH]. Read the documentation of the constant you use.
+     *
+     * Throws an [OperationInitiationFailedException] if the device is not connected.
+     */
+    @RequiresApi(LOLLIPOP)
+    fun requestPriority(priority: Int) {
+        gatt.requestConnectionPriority(priority).checkOperationInitiationSucceeded()
+    }
 
     fun connect(): Deferred<Unit> {
         checkNotClosed()
