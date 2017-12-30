@@ -8,6 +8,7 @@ the callback hell, and without blocking any thread (which would waste memory and
 This library makes it possible to have readable and debuggable code that interacts with
 Bluetooth Low Energy GATT (General Attribute), that is, the connection part of the Bluetooth Low Energy standard.
 
+## Why this library ?
 As we needed to have an Android app interact with a Bluetooth Low Energy device, we found the
 Android BluetoothGatt API and a few RxJava libraries built on top of it. Unfortunately, none suited our needs:
 - The vanilla Android BluetoothGatt API is extremely hard to get right, because you have to provide a single
