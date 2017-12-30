@@ -61,21 +61,6 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
     val stateChangeChannel = ConflatedBroadcastChannel<StateChange>()
     val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
 
-    /**
-     * Use this method only if needed, and do so carefully.
-     * See [BluetoothGatt.requestConnectionPriority].
-     *
-     * Accepted values are [BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER],
-     * [BluetoothGatt.CONNECTION_PRIORITY_BALANCED] and
-     * [BluetoothGatt.CONNECTION_PRIORITY_HIGH]. Read the documentation of the constant you use.
-     *
-     * Throws an [OperationInitiationFailedException] if the device is not connected.
-     */
-    @RequiresApi(LOLLIPOP)
-    fun requestPriority(priority: Int) {
-        gatt.requestConnectionPriority(priority).checkOperationInitiationSucceeded()
-    }
-
     fun connect(): Deferred<Unit> {
         checkNotClosed()
         gatt.connect().checkOperationInitiationSucceeded()
@@ -114,6 +99,21 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
 
     suspend fun readRemoteRssi() = gattRequest(rssiChannel) {
         gatt.readRemoteRssi()
+    }
+
+    /**
+     * Use this method only if needed, and do so carefully.
+     * See [BluetoothGatt.requestConnectionPriority].
+     *
+     * Accepted values are [BluetoothGatt.CONNECTION_PRIORITY_LOW_POWER],
+     * [BluetoothGatt.CONNECTION_PRIORITY_BALANCED] and
+     * [BluetoothGatt.CONNECTION_PRIORITY_HIGH]. Read the documentation of the constant you use.
+     *
+     * Throws an [OperationInitiationFailedException] if the device is not connected.
+     */
+    @RequiresApi(LOLLIPOP)
+    fun requestPriority(priority: Int) {
+        gatt.requestConnectionPriority(priority).checkOperationInitiationSucceeded()
     }
 
     suspend fun discoverServices() = gattRequest(servicesDiscoveryChannel) {
