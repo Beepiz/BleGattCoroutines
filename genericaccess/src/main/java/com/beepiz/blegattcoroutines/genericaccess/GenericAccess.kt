@@ -22,6 +22,8 @@ object GenericAccess {
     suspend fun GattConnection.readAppearance() = read(appearanceUuid)
 
     val GattConnection.deviceName: String get() = get(deviceNameUuid).getStringValue(0)
+
+    /** See constants in [Appearance]. */
     val GattConnection.appearance: Short
         get() = get(appearanceUuid).let {
             (it.value[1].toInt() shl 8 or (it.value[0] and 0xFF.toByte()).toInt()).toShort()
