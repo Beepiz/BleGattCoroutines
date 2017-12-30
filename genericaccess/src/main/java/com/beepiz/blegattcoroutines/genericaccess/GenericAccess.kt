@@ -13,10 +13,11 @@ import kotlin.experimental.and
  */
 @RequiresApi(JELLY_BEAN_MR2)
 object GenericAccess {
-    val uuid = uuid("00001800-0000-1000-8000-00805f9b34fb")
-    val deviceNameUuid = uuid("00002A00-0000-1000-8000-00805f9b34fb") // UTF-8
+
+    val uuid = gattUuid(0x1800)
+    val deviceNameUuid = gattUuid(0x2A00) // UTF-8
     /** See constants in [Appearance]. */
-    val appearanceUuid = uuid("00002A01-0000-1000-8000-00805f9b34fb") // 16 bit
+    val appearanceUuid = gattUuid(0x2A01) // 16 bit
 
     suspend fun GattConnection.readDeviceName() = read(deviceNameUuid)
     suspend fun GattConnection.readAppearance() = read(appearanceUuid)
@@ -38,6 +39,12 @@ object GenericAccess {
         readCharacteristic(get(characteristicUuid))
     }
 
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun uuid(uuidString: String): UUID = UUID.fromString(uuidString)
+    private fun gattUuid(number: Short): UUID {
+        val assignedNumberMask = 0x0000_FFFF_0000_0000L
+        val shifted16bits = number.toLong() shl 32 and assignedNumberMask
+        val gattMostSigBits = 0x0000000000001000L
+        val gattLeastSigBits = -9223371485494954757 // 0x800000805f9b34fb
+        val mostSignificantBits: Long = gattMostSigBits or shifted16bits
+        return UUID(mostSignificantBits, gattLeastSigBits)
+    }
 }
