@@ -38,6 +38,8 @@ class ConnectionClosedException(cause: Throwable? = null) : Exception("The conne
  * done, call [close] or [disconnect].
  *
  * Note that [discoverServices] is usually the first call you want to make after calling [connect].
+ *
+ * **For production apps, see [stateChangeChannel].**
  */
 @RequiresApi(JELLY_BEAN_MR2)
 class GattConnection(bluetoothDevice: BluetoothDevice) {
@@ -69,12 +71,18 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
     private var closedException: ConnectionClosedException? = null
 
     /**
+     * **You should totally use this channel and implement the appropriate behavior for a production
+     * app.**
+     *
      * Dispatches fine grained connection changes, including errors.
      * You can consume this channel in an `async(UI) { … }` block (without awaiting completion,
      * unless you want to await until [close] is called) and perform the logic you want according
      * to connection state changes. For example, in case of a 133 status, you could retry connection
      * a few times by calling [connect] again, or call [close] and alert the user if needed after
      * multiple errors.
+     * This channel will also receive disconnections that can happen if the device
+     * gets out of range for example. It's then up to you to decide to retry [connect] a few times,
+     * periodically, alert the user or call [close].
      */
     val stateChangeChannel = ConflatedBroadcastChannel<StateChange>()
 
