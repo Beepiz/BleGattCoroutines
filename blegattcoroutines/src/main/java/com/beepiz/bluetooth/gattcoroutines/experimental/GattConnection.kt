@@ -30,6 +30,15 @@ private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 
 class ConnectionClosedException(cause: Throwable? = null) : Exception("The connection has been irrevocably closed.", cause)
 
+/**
+ * The entry point of BluetoothGatt with coroutines.
+ *
+ * Create an instance by passing a Low Energy compatible [BluetoothDevice], then
+ * call [connect] when you need to perform operations, perform your operations, and when you're
+ * done, call [close] or [disconnect].
+ *
+ * Note that [discoverServices] is usually the first call you want to make after calling [connect].
+ */
 @RequiresApi(JELLY_BEAN_MR2)
 class GattConnection(bluetoothDevice: BluetoothDevice) {
 
@@ -58,6 +67,15 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
         }
     private inline val isClosed get() = !isConnected && !connectionGate.isLocked
     private var closedException: ConnectionClosedException? = null
+
+    /**
+     * Dispatches fine grained connection changes, including errors.
+     * You can consume this channel in an `async(UI) { … }` block (without awaiting completion,
+     * unless you want to await until [close] is called) and perform the logic you want according
+     * to connection state changes. For example, in case of a 133 status, you could retry connection
+     * a few times by calling [connect] again, or call [close] and alert the user if needed after
+     * multiple errors.
+     */
     val stateChangeChannel = ConflatedBroadcastChannel<StateChange>()
 
     /**
@@ -66,12 +84,29 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      */
     val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
 
+    /**
+     * Note that **there's a max concurrent GATT connections** which is 4 on Android 4.3 and
+     * 7 on Android 4.4+. Keep in mind the user may already have a few connected devices such
+     * as a SmartWatch, that top notch Bluetooth headset, or whatever which count as GATT
+     * connections too. Call [close] or [disconnect] when you don't need the connection anymore,
+     * or don't need the connection to stay active for some amount of time.
+     *
+     * You can call [Deferred.await] on the result of this method if you want your coroutine to
+     * suspend until connection is established (to show it to the user for example). Note that all
+     * suspending GATT operations will await connection anyway.
+     */
     fun connect(): Deferred<Unit> {
         checkNotClosed()
         gatt.connect().checkOperationInitiationSucceeded()
         return async(UI) { connectionGate.passThroughWhenUnlocked() }
     }
 
+    /**
+     * Useful if you want to disconnect from the device for a relatively short time and connect
+     * back later using this same instance.
+     *
+     * Just like [connect], you can call [Deferred.await] on the result of this method.
+     */
     fun disconnect(): Deferred<Unit> {
         checkNotClosed()
         gatt.disconnect()
@@ -80,6 +115,9 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
 
     /**
      * No need to disconnect first if you call this method.
+     *
+     * This [GattConnection] instance is no longer usable after this has been called, and all
+     * coroutines suspended on calls to this instance will receive a cancellation signal.
      */
     fun close(notifyStateChangeChannel: Boolean = false) {
         val cause = ConnectionClosedException()
@@ -102,6 +140,7 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
         stateChangeChannel.close(cause)
     }
 
+    /** Reads the RSSI for a connected remote device */
     suspend fun readRemoteRssi() = gattRequest(rssiChannel) {
         gatt.readRemoteRssi()
     }
@@ -121,6 +160,12 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
         gatt.requestConnectionPriority(priority).checkOperationInitiationSucceeded()
     }
 
+    /**
+     * This is usually the first call you make after calling [connect].
+     *
+     * Discovers services offered by the remote device as well as its characteristics and
+     * its descriptors.
+     */
     suspend fun discoverServices() = gattRequest(servicesDiscoveryChannel) {
         gatt.discoverServices()
     }
@@ -129,6 +174,10 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      * Enable or disable notifications/indications for the passed [characteristic].
      * Once notifications are enabled for a characteristic, the [notifyChannel] will receive updated
      * characteristic if the remote device indicates that is has changed.
+     *
+     * Note that **there is a concurrent active notifications limit**, which, according to
+     * [this video](https://youtu.be/qx55Sa8UZAQ?t=28m30s) is **4 on Android 4.3**,
+     * 7 on Android 4.4, and 15 on Android 5.0+.
      */
     fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean) {
         gatt.setCharacteristicNotification(characteristic, enable).checkOperationInitiationSucceeded()
