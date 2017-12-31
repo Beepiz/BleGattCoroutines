@@ -9,7 +9,9 @@ import com.beepiz.blegattcoroutines.sample.common.register.Registrable
 import timber.log.Timber
 
 /**
- * Just heats up the BluetoothGatt stack. Useful to do before connecting to any device.
+ * Just heats up the BluetoothGatt stack. Useful to do before connecting to any device to decrease
+ * the chances of connection failures (even if you just access the device directly via
+ * its MAC address).
  */
 @RequiresApi(LOLLIPOP)
 class BleScanHeater(private val scanMode: Int = ScanSettings.SCAN_MODE_LOW_LATENCY) : Registrable {
