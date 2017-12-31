@@ -54,6 +54,7 @@ The currently supported GATT operations on the `GattConnection` class are:
 - Descriptor write, using `writeDescriptor(…)`. Services disovery has to be completed before, as usual.
 - RSSI read, using `readRemoteRssi(…)`.
 - NOTIFY characteristics with the `notifyChannel`. These haven't been tested yet. Feedback wanted.
+- Toggling characteristic update notifications with `setCharacteristicNotificationsEnabled(…)`. Tied to NOTIFY feature.
 - PHY, using `readPhy()`. Only supported in Android O. Hasn't been tested. We don't know what this is either, to be honest.
 
 When you're done with the BLE device (you need to be done before the device's battery runs out, unless you're dealing with an always on wearable that the user didn't disconnect), call `close()`.
