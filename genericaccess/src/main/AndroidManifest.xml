@@ -1,2 +1,2 @@
-<manifest package="com.beepiz.blegattcoroutines.genericaccess"
+<manifest package="com.beepiz.blegattcoroutines.experimental.genericaccess"
           xmlns:android="http://schemas.android.com/apk/res/android"/>

@@ -1,4 +1,4 @@
-package com.beepiz.blegattcoroutines.genericaccess
+package com.beepiz.blegattcoroutines.experimental.genericaccess
 
 /**
  * Constants definitions from [official docs](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.gap.appearance.xml).

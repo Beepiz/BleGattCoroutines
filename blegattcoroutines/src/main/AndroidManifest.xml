@@ -1,5 +1,6 @@
-<manifest package="com.beepiz.blegattcoroutines"
+<manifest package="com.beepiz.blegattcoroutines.experimental"
           xmlns:android="http://schemas.android.com/apk/res/android">
+
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 </manifest>

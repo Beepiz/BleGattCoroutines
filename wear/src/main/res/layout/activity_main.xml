@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:background="@color/dark_grey"
     android:padding="@dimen/box_inset_layout_padding"
-    tools:context="com.beepiz.blegattcoroutines.MainActivity"
+    tools:context="com.beepiz.blegattcoroutines.sample.MainActivity"
     tools:deviceIds="wear">
 
     <FrameLayout

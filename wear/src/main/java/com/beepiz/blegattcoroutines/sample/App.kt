@@ -1,6 +1,7 @@
-package com.beepiz.blegattcoroutines
+package com.beepiz.blegattcoroutines.sample
 
 import android.app.Application
+import com.beepiz.blegattcoroutines.BuildConfig
 import timber.log.Timber
 
 class App : Application() {

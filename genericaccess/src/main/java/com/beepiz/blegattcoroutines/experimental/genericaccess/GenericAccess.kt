@@ -1,4 +1,4 @@
-package com.beepiz.blegattcoroutines.genericaccess
+package com.beepiz.blegattcoroutines.experimental.genericaccess
 
 import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
 import android.support.annotation.RequiresApi

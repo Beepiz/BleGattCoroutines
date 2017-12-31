@@ -3,7 +3,7 @@ package com.beepiz.blegattcoroutines.sample.common
 import android.arch.lifecycle.ViewModel
 import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
 import android.support.annotation.RequiresApi
-import com.beepiz.blegattcoroutines.genericaccess.GenericAccess
+import com.beepiz.blegattcoroutines.experimental.genericaccess.GenericAccess
 import com.beepiz.blegattcoroutines.sample.common.extensions.deviceFor
 import com.beepiz.blegattcoroutines.sample.common.extensions.toast
 import com.beepiz.blegattcoroutines.sample.common.extensions.useBasic
