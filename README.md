@@ -116,4 +116,9 @@ I/MainViewModel$logNameAndAppearance: Closed!
 This proves our library is working and that **WE MADE GATT GREAT AGAIN!**
 
 ## Download
-This library is not published on jcenter yet (you can subscribe to the [issue #4](https://github.com/Beepiz/BleGattCoroutines/issues/4) to get notified when it is), but it's made of only [4 Kotlin files](https://github.com/Beepiz/BleGattCoroutines/tree/fd5b3476c9d13a1b9ed17ac8d114cdd949dce1ca/blegattcoroutines/src/main/java/com/beepiz/bluetooth/gattcoroutines/experimental), so you can already try it out in your project pretty easily.
+This library is not published on jcenter yet (you can subscribe to the [issue #4](https://github.com/Beepiz/BleGattCoroutines/issues/4) to get notified when it is), but it's made of only 4 Kotlin files, and here's a good way to try the library, and then, to add it to your project:
+1. Download/clone the "whole" project from GitHub on your computer
+2. Try the sample from your watch, phone or tablet (does it work on Chromebooks too?) on your connectable BLE device to understand how it works.
+3. Import the `blegattcoroutines` module in your project (this will take care of adding the few dependencies).
+4. In the module(s) where you need to use BleGattCoroutines, add the module dependency like it's done in the sample's `build.gradle` file.
+5. Success! You can use BLE with coroutines in your project.
