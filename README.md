@@ -116,4 +116,4 @@ I/MainViewModel$logNameAndAppearance: Closed!
 This proves our library is working and that **WE MADE GATT GREAT AGAIN!**
 
 ## Download
-This library is [not published on jcenter yet](https://github.com/Beepiz/BleGattCoroutines/issues/4) (feel free to subscribe to the issue #4), but it's made of only [4 Kotlin files](https://github.com/Beepiz/BleGattCoroutines/tree/e8e97a390027c59617411a74a7274d186d1b7c54/blegattcoroutines/src/main/java/com/beepiz/bluetooth/gattcoroutines/experimental), so you can already try it out in your project pretty easily.
+This library is not published on jcenter yet (you can subscribe to the [issue #4](https://github.com/Beepiz/BleGattCoroutines/issues/4) to get notified when it is), but it's made of only [4 Kotlin files](https://github.com/Beepiz/BleGattCoroutines/tree/fd5b3476c9d13a1b9ed17ac8d114cdd949dce1ca/blegattcoroutines/src/main/java/com/beepiz/bluetooth/gattcoroutines/experimental), so you can already try it out in your project pretty easily.
