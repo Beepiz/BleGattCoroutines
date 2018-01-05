@@ -4,6 +4,7 @@ import android.bluetooth.*
 import android.os.Build
 import android.os.Build.VERSION_CODES.*
 import android.support.annotation.RequiresApi
+import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.async
@@ -28,7 +29,11 @@ typealias BGD = BluetoothGattDescriptor
 @RequiresApi(JELLY_BEAN_MR2)
 private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 
-class ConnectionClosedException(cause: Throwable? = null) : Exception("The connection has been irrevocably closed.", cause)
+class ConnectionClosedException(cause: Throwable? = null) : CancellationException("The connection has been irrevocably closed.") {
+    init {
+        initCause(cause)
+    }
+}
 
 /**
  * The entry point of BluetoothGatt with coroutines.
