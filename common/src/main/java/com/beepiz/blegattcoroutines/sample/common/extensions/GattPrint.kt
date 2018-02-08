@@ -1,18 +1,39 @@
-@file:Suppress("NOTHING_TO_INLINE")
+@file:Suppress("NOTHING_TO_INLINE", "InlinedApi")
 
 package com.beepiz.blegattcoroutines.sample.common.extensions
 
 import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattCharacteristic.*
+import android.bluetooth.BluetoothGattCharacteristic.PERMISSION_READ
+import android.bluetooth.BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED
+import android.bluetooth.BluetoothGattCharacteristic.PERMISSION_READ_ENCRYPTED_MITM
+import android.bluetooth.BluetoothGattCharacteristic.PERMISSION_WRITE
+import android.bluetooth.BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED
+import android.bluetooth.BluetoothGattCharacteristic.PERMISSION_WRITE_ENCRYPTED_MITM
+import android.bluetooth.BluetoothGattCharacteristic.PERMISSION_WRITE_SIGNED
+import android.bluetooth.BluetoothGattCharacteristic.PERMISSION_WRITE_SIGNED_MITM
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_BROADCAST
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_EXTENDED_PROPS
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_INDICATE
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_NOTIFY
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_READ
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_SIGNED_WRITE
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE
+import android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE
+import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+import android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_SIGNED
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_SECONDARY
+import android.support.annotation.RequiresApi
 
+@RequiresApi(18)
 fun BluetoothGattService.print(printCharacteristics: Boolean = true): String {
     return if (printCharacteristics) printWithCharacteristics() else printWithoutCharacteristics()
 }
 
+@RequiresApi(18)
 fun BluetoothGattService.printWithoutCharacteristics(): String = """UUID: $uuid
 instance ID: $instanceId
 type: $typeString
@@ -20,6 +41,7 @@ characteristics count: ${characteristics.count()}
 included services count: ${includedServices?.count()}
 """
 
+@RequiresApi(18)
 fun BluetoothGattService.printWithCharacteristics(): String = """UUID: $uuid
 instance ID: $instanceId
 type: $typeString
@@ -29,6 +51,7 @@ ${characteristics.joinToString { it.print() }.prependIndent()}
 included services count: ${includedServices?.count()}
 """
 
+@RequiresApi(18)
 fun BluetoothGattCharacteristic.print(): String = """UUID: $uuid
 instance ID: $instanceId
 permissions: $permissionsString
@@ -38,6 +61,7 @@ value: $value
 stringValue: ${getStringValue(0)}
 """
 
+@RequiresApi(18)
 fun BluetoothGattDescriptor.print(): String = """UUID: $uuid
 permissions: $permissions
 value: $value
@@ -45,29 +69,35 @@ characteristic: ${characteristic?.print()}
 """
 
 private val BluetoothGattService.typeString: String
-    get() = when (type) {
+    @RequiresApi(18) get() = when (type) {
         SERVICE_TYPE_PRIMARY -> "PRIMARY"
         SERVICE_TYPE_SECONDARY -> "SECONDARY"
         else -> "UNKNOWN"
     }
 
 private val BluetoothGattCharacteristic.writeTypeString: String
-    get() = when (writeType) {
+    @RequiresApi(18) get() = when (writeType) {
         WRITE_TYPE_DEFAULT -> "DEFAULT"
         WRITE_TYPE_NO_RESPONSE -> "NO_RESPONSE"
         WRITE_TYPE_SIGNED -> "SIGNED"
         else -> "UNKNOWN"
     }
 
-private val BluetoothGattCharacteristic.propertiesString: String get() = propertiesString(properties)
-private val BluetoothGattCharacteristic.permissionsString: String get() {
-    return "$permissions"
-    //return permissionsString(permissions)
-}
+private val BluetoothGattCharacteristic.propertiesString: String
+    @RequiresApi(18) get() = propertiesString(properties)
+
+private val BluetoothGattCharacteristic.permissionsString: String
+    @RequiresApi(18) get() {
+        return "$permissions"
+        //return permissionsString(permissions)
+    }
+
 @Suppress("DEPRECATION")
 @Deprecated("Doesn't seem to work")
-private val BluetoothGattDescriptor.permissionsString: String get() = permissionsString(permissions)
+private val BluetoothGattDescriptor.permissionsString: String
+    @RequiresApi(18) get() = permissionsString(permissions)
 
+@RequiresApi(18)
 @Deprecated("Doesn't seem to work")
 private fun permissionsString(permissions: Int): String = StringBuilder().apply {
     if (permissions.hasFlag(PERMISSION_READ)) append("READ, ")
@@ -80,6 +110,7 @@ private fun permissionsString(permissions: Int): String = StringBuilder().apply 
     if (permissions.hasFlag(PERMISSION_WRITE_SIGNED_MITM)) append("WRITE_SIGNED_MITM, ")
 }.toString()
 
+@RequiresApi(18)
 private fun propertiesString(properties: Int): String = StringBuilder().apply {
     if (properties.hasFlag(PROPERTY_READ)) append("READ, ")
     if (properties.hasFlag(PROPERTY_WRITE)) append("WRITE, ")

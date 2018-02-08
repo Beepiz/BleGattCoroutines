@@ -54,7 +54,7 @@ class ConnectionClosedException(cause: Throwable? = null) : CancellationExceptio
  *
  * **For production apps, see [stateChangeChannel].**
  */
-@RequiresApi(JELLY_BEAN_MR2)
+@RequiresApi(18)
 class GattConnection(bluetoothDevice: BluetoothDevice) {
 
     init {
