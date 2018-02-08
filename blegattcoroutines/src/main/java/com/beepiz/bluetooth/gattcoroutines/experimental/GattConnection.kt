@@ -1,8 +1,16 @@
 package com.beepiz.bluetooth.gattcoroutines.experimental
 
-import android.bluetooth.*
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothGattService
+import android.bluetooth.BluetoothProfile
 import android.os.Build
-import android.os.Build.VERSION_CODES.*
+import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
+import android.os.Build.VERSION_CODES.LOLLIPOP
+import android.os.Build.VERSION_CODES.O
 import android.support.annotation.RequiresApi
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.Deferred
@@ -311,7 +319,7 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      * We need to wait for one operation to fully complete before making another one to avoid
      * Bluetooth Gatt errors.
      */
-    private inline suspend fun <E> gattRequest(ch: ReceiveChannel<GattResponse<E>>, operation: () -> Boolean): E {
+    private suspend inline fun <E> gattRequest(ch: ReceiveChannel<GattResponse<E>>, operation: () -> Boolean): E {
         checkUiThread()
         checkNotClosed()
         val mutex = when {
