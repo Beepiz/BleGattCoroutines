@@ -23,8 +23,8 @@ android {
 dependencies {
     implementation project(":common")
 
-    compileOnly 'com.google.android.wearable:wearable:2.1.0'
-    implementation 'com.google.android.support:wearable:2.1.0'
+    compileOnly 'com.google.android.wearable:wearable:2.2.0'
+    implementation 'com.google.android.support:wearable:2.2.0'
     implementation "com.android.support:wear:$supportLibs_version"
     implementation "com.google.android.gms:play-services-wearable:$playServices_version"
 
