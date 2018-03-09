@@ -29,8 +29,8 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutines_version"
 
     // Splitties
-    implementation "xyz.louiscad.splitties:splitties-appctx:$splitties_version"
-    implementation "xyz.louiscad.splitties:splitties-concurrency:$splitties_version"
+    api "com.louiscad.splitties:splitties-appctx:$splitties_version"
+    api "com.louiscad.splitties:splitties-checkedlazy:$splitties_version"
 
     // Log utilities
     implementation "com.jakewharton.timber:timber:$timber_version"

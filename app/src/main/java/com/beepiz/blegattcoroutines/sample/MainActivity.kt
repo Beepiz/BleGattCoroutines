@@ -10,9 +10,15 @@ import com.beepiz.blegattcoroutines.sample.common.BleScanHeater
 import com.beepiz.blegattcoroutines.sample.common.MainViewModel
 import com.beepiz.blegattcoroutines.sample.common.extensions.activityScope
 import com.beepiz.blegattcoroutines.sample.common.register.registerWhileResumed
-import com.beepiz.blegattcoroutines.sample.common.viewdsl.*
-import com.beepiz.blegattcoroutines.sample.common.views.onClick
-import com.beepiz.blegattcoroutines.sample.common.views.padding
+import splitties.dimensions.dip
+import splitties.viewdsl.appcompat.button
+import splitties.viewdsl.core.add
+import splitties.viewdsl.core.contentView
+import splitties.viewdsl.core.lParams
+import splitties.viewdsl.core.v
+import splitties.viewdsl.core.verticalLayout
+import splitties.views.onClick
+import splitties.views.padding
 
 @SuppressLint("SetTextI18n") // This is just a sample, English is enough.
 class MainActivity : AppCompatActivity() {
