@@ -1,9 +1,13 @@
 package com.beepiz.blegattcoroutines.sample.common.extensions
 
-import android.arch.lifecycle.*
+import android.arch.lifecycle.LifecycleOwner
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModel
+import android.arch.lifecycle.ViewModelProviders
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
-import splitties.concurrency.uiLazy
+import splitties.checkedlazy.uiLazy
 
 inline fun <T> LifecycleOwner.observe(liveData: LiveData<T>, crossinline observer: (t: T?) -> Unit) {
     liveData.observe(this, Observer { observer(it) })

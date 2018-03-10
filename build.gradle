@@ -19,7 +19,7 @@ allprojects {
     repositories {
         google()
         jcenter()
-        mavenLocal()
+        maven { url "https://dl.bintray.com/louiscad/maven" }
     }
     ext {
         projectBuildTools_version = '27.0.3'
@@ -36,7 +36,7 @@ allprojects {
 
         kotlinxCoroutines_version = '0.22.5'
 
-        splitties_version = '2.0.0-dev'
+        splitties_version = '2.0.0-alpha1'
 
         timber_version = '4.6.0'
     }

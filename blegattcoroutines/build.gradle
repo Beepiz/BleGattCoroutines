@@ -21,6 +21,10 @@ android {
 }
 
 dependencies {
+
+    // Android Support Libraries
+    api "com.android.support:support-annotations:$supportLibs_version"
+
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
@@ -30,6 +34,7 @@ dependencies {
 
     // Splitties
     api "com.louiscad.splitties:splitties-appctx:$splitties_version"
+    api "com.louiscad.splitties:splitties-uithread:$splitties_version"
     api "com.louiscad.splitties:splitties-checkedlazy:$splitties_version"
 
     // Log utilities

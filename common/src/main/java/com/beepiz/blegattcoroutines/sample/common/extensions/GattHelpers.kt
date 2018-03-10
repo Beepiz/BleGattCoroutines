@@ -7,6 +7,8 @@ import com.beepiz.bluetooth.gattcoroutines.experimental.GattConnection
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.TimeoutCancellationException
 import kotlinx.coroutines.experimental.withTimeout
+import splitties.systemservices.bluetoothManager
+import splitties.toast.toast
 import timber.log.Timber
 
 @RequiresApi(18)
