@@ -4,8 +4,8 @@ import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanSettings
 import android.os.Build.VERSION_CODES.LOLLIPOP
 import android.support.annotation.RequiresApi
-import com.beepiz.blegattcoroutines.sample.common.extensions.bluetoothManager
 import com.beepiz.blegattcoroutines.sample.common.register.Registrable
+import splitties.systemservices.bluetoothManager
 import timber.log.Timber
 
 /**

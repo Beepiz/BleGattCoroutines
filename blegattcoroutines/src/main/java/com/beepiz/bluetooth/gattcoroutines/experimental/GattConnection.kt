@@ -23,11 +23,10 @@ import kotlinx.coroutines.experimental.channels.SendChannel
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
-import splitties.concurrency.LazyThreadSafetyPolicy.UI_THREAD
-import splitties.concurrency.isUiThread
-import splitties.concurrency.lazy
+import splitties.checkedlazy.uiLazy
 import splitties.init.appCtx
 import splitties.init.consume
+import splitties.uithread.isUiThread
 import java.util.*
 
 typealias BG = BluetoothGatt
@@ -311,7 +310,7 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
     private val reliableWritesMutex = Mutex()
     private var reliableWriteOngoing = false
 
-    private val gatt: BG by lazy(mode = UI_THREAD) {
+    private val gatt: BG by uiLazy {
         bluetoothDevice.connectGatt(appCtx, false, callback)
     }
 

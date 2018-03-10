@@ -5,11 +5,11 @@ import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
 import android.support.annotation.RequiresApi
 import com.beepiz.blegattcoroutines.experimental.genericaccess.GenericAccess
 import com.beepiz.blegattcoroutines.sample.common.extensions.deviceFor
-import com.beepiz.blegattcoroutines.sample.common.extensions.toast
 import com.beepiz.blegattcoroutines.sample.common.extensions.useBasic
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import splitties.toast.toast
 import timber.log.Timber
 
 class MainViewModel : ViewModel() {

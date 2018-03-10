@@ -6,8 +6,8 @@ import com.beepiz.blegattcoroutines.sample.common.BleScanHeater
 import com.beepiz.blegattcoroutines.sample.common.MainViewModel
 import com.beepiz.blegattcoroutines.sample.common.extensions.activityScope
 import com.beepiz.blegattcoroutines.sample.common.register.registerWhileResumed
-import com.beepiz.blegattcoroutines.sample.common.views.onClick
 import kotlinx.android.synthetic.main.activity_main.*
+import splitties.views.onClick
 
 class MainActivity : FragmentActivity() {
 

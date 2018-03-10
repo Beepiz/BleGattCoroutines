@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_PRIMARY
 import android.bluetooth.BluetoothGattService.SERVICE_TYPE_SECONDARY
 import android.support.annotation.RequiresApi
+import splitties.bitflags.hasFlag
 
 @RequiresApi(18)
 fun BluetoothGattService.print(printCharacteristics: Boolean = true): String {

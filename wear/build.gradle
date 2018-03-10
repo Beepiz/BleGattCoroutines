@@ -31,6 +31,8 @@ dependencies {
     implementation "com.android.support:percent:$supportLibs_version"
     implementation "com.android.support:support-v4:$supportLibs_version"
     implementation "com.android.support:recyclerview-v7:$supportLibs_version"
+
+    implementation "com.louiscad.splitties:splitties-views:$splitties_version"
 }
 
 kotlin {
