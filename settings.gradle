@@ -1,1 +1,1 @@
-include ':sample-app-mobile', ':core', ':genericaccess', ':wear', ':sample-common'
+include ':sample-app-mobile', ':core', ':genericaccess', ':sample-app-wear', ':sample-common'
