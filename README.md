@@ -67,7 +67,7 @@ Here's a basic example that just logs the characteristics (using [the `print()` 
 ```kotlin
 fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch(UI) {
     val deviceConnection = GattConnection(bluetoothDevice = this@logGattServices)
-    deviceConnection.connect().await() // Await is optional
+    deviceConnection.connect() // Suspends until connection is established
     val gattServices = deviceConnection.discoverServices() // Suspends until completed
     gattServices.forEach {
         it.characteristics.forEach {
@@ -79,7 +79,7 @@ fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch(
         }
         Log.v(tag, it.print(printCharacteristics = true))
     }
-    deviceConnection.disconnect().await() // Disconnection is optional. Useful if you don't close and reconnect later.
+    deviceConnection.disconnect() // Disconnection is optional. Useful if you don't close and reconnect later.
     deviceConnection.close() // Close when no longer used it NOT optional 
 }
 ```
