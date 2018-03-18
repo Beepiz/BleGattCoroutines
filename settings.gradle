@@ -1,1 +1,1 @@
-include ':app', ':core', ':genericaccess', ':wear', ':common'
+include ':app', ':core', ':genericaccess', ':wear', ':sample-common'
