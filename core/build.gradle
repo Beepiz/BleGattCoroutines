@@ -37,9 +37,6 @@ dependencies {
     api "com.louiscad.splitties:splitties-uithread:$splitties_version"
     api "com.louiscad.splitties:splitties-checkedlazy:$splitties_version"
 
-    // Log utilities
-    implementation "com.jakewharton.timber:timber:$timber_version"
-
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
