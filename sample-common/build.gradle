@@ -22,7 +22,7 @@ android {
 
 dependencies {
 
-    api project(":blegattcoroutines")
+    api project(':core')
     api project(":genericaccess")
 
     // Android Support Libraries
