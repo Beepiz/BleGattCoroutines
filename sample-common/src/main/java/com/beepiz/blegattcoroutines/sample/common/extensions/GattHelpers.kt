@@ -26,7 +26,7 @@ suspend inline fun BluetoothDevice.useBasic(connectionTimeoutInMillis: Long = 50
     try {
         deviceConnection.logConnectionChanges()
         withTimeout(connectionTimeoutInMillis) {
-            deviceConnection.connect().await()
+            deviceConnection.connect()
         }
         Timber.i("Connected!")
         val services = deviceConnection.discoverServices()

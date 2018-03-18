@@ -13,9 +13,7 @@ import android.os.Build.VERSION_CODES.LOLLIPOP
 import android.os.Build.VERSION_CODES.O
 import android.support.annotation.RequiresApi
 import kotlinx.coroutines.experimental.CancellationException
-import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
@@ -23,6 +21,7 @@ import kotlinx.coroutines.experimental.channels.SendChannel
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
+import kotlinx.coroutines.experimental.withTimeout
 import splitties.checkedlazy.uiLazy
 import splitties.init.appCtx
 import splitties.init.consume
@@ -36,7 +35,9 @@ typealias BGD = BluetoothGattDescriptor
 @RequiresApi(JELLY_BEAN_MR2)
 private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 
-class ConnectionClosedException(cause: Throwable? = null) : CancellationException("The connection has been irrevocably closed.") {
+class ConnectionClosedException(
+        cause: Throwable? = null
+) : CancellationException("The connection has been irrevocably closed.") {
     init {
         initCause(cause)
     }
@@ -105,32 +106,37 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
     val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
 
     /**
-     * Note that **there's a max concurrent GATT connections** which is 4 on Android 4.3 and
+     * Suspends until a connection is established with the target device, or throws if an error
+     * happens.
+     *
+     * It is **strongly recommended** to wrap this call with [withTimeout] as this method may never
+     * resume if the target device is not in range. A timeout of about 5 seconds is recommended.
+     *
+     * Note that after any timeout, it is **your responsibility to close this [GattConnection]
+     * instance**. However, this may change in a future version of the library.
+     *
+     * **There's a max concurrent GATT connections** which is 4 on Android 4.3 and
      * 7 on Android 4.4+. Keep in mind the user may already have a few connected devices such
      * as a SmartWatch, that top notch Bluetooth headset, or whatever which count as GATT
-     * connections too. Call [close] or [disconnect] when you don't need the connection anymore,
-     * or don't need the connection to stay active for some amount of time.
-     *
-     * You can call [Deferred.await] on the result of this method if you want your coroutine to
-     * suspend until connection is established (to show it to the user for example). Note that all
-     * suspending GATT operations will await connection anyway.
+     * connections too. Call [close] when you don't need the connection anymore, or [disconnect]
+     * if you don't need the connection to stay active for some amount of time.
      */
-    fun connect(): Deferred<Unit> {
+    suspend fun connect() {
         checkNotClosed()
         gatt.connect().checkOperationInitiationSucceeded()
-        return async(UI) { connectionGate.passThroughWhenUnlocked() }
+        connectionGate.passThroughWhenUnlocked()
     }
 
     /**
+     * Suspends until the target device is disconnected, or throw if an error happens.
+     *
      * Useful if you want to disconnect from the device for a relatively short time and connect
      * back later using this same instance.
-     *
-     * Just like [connect], you can call [Deferred.await] on the result of this method.
      */
-    fun disconnect(): Deferred<Unit> {
+    suspend fun disconnect() {
         checkNotClosed()
         gatt.disconnect()
-        return async(UI) { connectionGate.awaitLock() }
+        connectionGate.awaitLock()
     }
 
     /**
