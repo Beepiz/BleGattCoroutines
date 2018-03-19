@@ -9,6 +9,9 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.1.0-rc02'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.6.2'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -27,7 +30,7 @@ allprojects {
 
         // Libraries
         groupId = "com.beepiz.blegattcoroutines"
-        library_version = "0.1.0-SNAPSHOT"
+        library_version = "0.1.0"
         isSnapshot = library_version.endsWith("-SNAPSHOT")
         isRelease = !isSnapshot
 

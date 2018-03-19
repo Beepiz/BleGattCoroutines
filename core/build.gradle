@@ -47,3 +47,5 @@ kotlin {
         coroutines "enable"
     }
 }
+
+apply from: '../publish.gradle'
