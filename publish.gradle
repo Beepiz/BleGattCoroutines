@@ -97,11 +97,11 @@ if (isSnapshot) {
     bintrayUpload.dependsOn install
     bintray {
         user = beepiz_bintray_user
-        userOrg = 'beepiz'
         key = beepiz_bintray_api_key
         configurations = ['archives']
         override = true
         pkg {
+            userOrg = 'beepiz'
             repo = 'maven'
             name = "blegattcoroutines"
             desc = libraryDesc
