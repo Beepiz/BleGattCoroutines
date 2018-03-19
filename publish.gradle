@@ -1,0 +1,117 @@
+if (isRelease) apply from: '../no-version-ranges.gradle'
+
+apply plugin: 'com.github.dcendents.android-maven'
+
+group = 'com.beepiz.blegattcoroutines'
+project.archivesBaseName = "blegattcoroutines-${project.name}"
+version = library_version
+def gitUrl = 'https://github.com/Beepiz/BleGattCoroutines.git'
+def siteUrl = 'https://github.com/Beepiz/BleGattCoroutines'
+def libraryDesc = 'Make Gatt Great Again! This library allows easy and safer usage of BluetoothGatt in Android'
+
+// TODO replace with https://issuetracker.google.com/issues/72050365 once released.
+android.libraryVariants.all {
+    it.generateBuildConfig.enabled = false
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+install {
+    group = 'publishing'
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom.project {
+            packaging 'aar'
+
+            name "BleGattCoroutines"
+            description libraryDesc
+            url siteUrl
+
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                }
+            }
+            developers {
+                developer {
+                    id 'louiscad'
+                    name 'Louis CAD'
+                    email 'louis.cognault@gmail.com'
+                }
+            }
+            scm {
+                connection gitUrl
+                developerConnection gitUrl
+                url siteUrl
+            }
+        }
+    }
+}
+
+if (isSnapshot) {
+    apply plugin: 'com.jfrog.artifactory'
+    artifactoryPublish.doFirst {
+        def runFromIde = System.getProperties()['idea.platform.prefix'] != null
+        if (runFromIde) {
+            def command = "./gradlew artifactoryPublish"
+            def errorMsg = "artifactoryPublish doesn\'t work from IDE"
+            throw new IllegalStateException("$errorMsg. Please run \"$command\" from command line.")
+        }
+    }
+    artifactoryPublish.dependsOn install
+    artifactory {
+        contextUrl = 'https://oss.jfrog.org/artifactory'
+        publish {
+            repository {
+                repoKey = 'oss-snapshot-local'
+                username = bintray_user
+                password = bintray_api_key
+                maven = true
+            }
+            defaults {
+                publishConfigs('archives')
+                publishArtifacts = true
+                publishPom = true
+                publishIvy = false
+            }
+        }
+    }
+} else {
+    assert isRelease
+    apply plugin: 'com.jfrog.bintray'
+    bintrayUpload.doFirst {
+        def gitTag = 'git describe --dirty'.execute().text.trim()
+        def expectedTag = "v$library_version"
+        if (gitTag != expectedTag) {
+            throw new IllegalStateException("Expected git tag '$expectedTag' but got '$gitTag'")
+        }
+    }
+    bintrayUpload.dependsOn install
+    bintray {
+        user = beepiz_bintray_user
+        userOrg = 'beepiz'
+        key = beepiz_bintray_api_key
+        configurations = ['archives']
+        override = true
+        pkg {
+            repo = 'maven'
+            name = "blegattcoroutines"
+            desc = libraryDesc
+            websiteUrl = siteUrl
+            issueTrackerUrl = 'https://github.com/Beepiz/BleGattCoroutines/issues'
+            vcsUrl = gitUrl
+            licenses = ['Apache-2.0']
+            labels = ['aar', 'android', 'kotlin']
+            publicDownloadNumbers = true
+            githubRepo = 'Beepiz/BleGattCoroutines'
+        }
+    }
+}
