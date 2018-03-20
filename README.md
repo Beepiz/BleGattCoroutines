@@ -116,9 +116,55 @@ I/MainViewModel$logNameAndAppearance: Closed!
 This proves our library is working and that **WE MADE GATT GREAT AGAIN!**
 
 ## Download
-This library is not published on jcenter yet (you can subscribe to the [issue #4](https://github.com/Beepiz/BleGattCoroutines/issues/4) to get notified when it is), but it's made of only 4 Kotlin files, and here's a good way to try the library, and then, to add it to your project:
-1. Download/clone the "whole" project from GitHub on your computer.
-2. Try the sample from your watch, phone or tablet (does it work on Chromebooks too?) on your connectable BLE device to understand how it works.
-3. Import the `blegattcoroutines` module in your project (this will take care of adding the few dependencies).
-4. In the module(s) where you need to use BleGattCoroutines, add the module dependency like it's done in the sample's `build.gradle` file.
-5. Success! You can use BLE with coroutines in your project.
+
+### Gradle instructions
+Make sure you have `jcenter()` in the repositories defined in your project's
+(root) `build.gradle` file (default for new Android Studio projects).
+
+Add the version of the library to not repeat yourself if you use multiple
+artifacts, and make sure their versions are in sync by adding an ext property
+into your root project `build.gradle` file:
+```groovy
+allProjects {
+    ext {
+        blegattcoroutines_version = '0.1.0'
+    }
+}
+```
+Here are all the artifacts of this library. Just use the ones you need:
+```groovy
+implementation "com.beepiz.blegattcoroutines:blegattcoroutines-core:$blegattcoroutines_version"
+implementation "com.beepiz.blegattcoroutines:blegattcoroutines-genericaccess:$blegattcoroutines_version"
+```
+#### Snapshots
+Let's say you need a new feature or a fix that did
+not make it to a release yet:
+
+You can grab it in the latest snapshot by adding the
+snapshots repository and changing the library version to the -SNAPSHOT
+version in your root project `build.gradle` file:
+
+```groovy
+allProjects {
+    repositories {
+        google()
+        jcenter() // Add snapshots repo below
+        maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
+    }
+    ext {
+        splitties_version = '0.1.0-SNAPSHOT' // Change this line
+    }
+}
+```
+
+If you need to, you can browse the deployed snapshots [here on artifactory](
+https://oss.jfrog.org/webapp/#/artifacts/browse/tree/General/oss-snapshot-local/com/beepiz/blegattcoroutines
+).
+
+### Other build systems
+For maven and alternative build-systems, check the [Bintray page](
+https://bintray.com/beepiz/maven/blegattcoroutines).
+
+## New versions notifications
+To get notified for new versions, be sure to click on "Watch" on the
+[splitties Bintray page](https://bintray.com/beepiz/maven/blegattcoroutines).
