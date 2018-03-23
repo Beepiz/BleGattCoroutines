@@ -152,7 +152,7 @@ allProjects {
         maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
     }
     ext {
-        splitties_version = '0.1.0-SNAPSHOT' // Change this line
+        blegattcoroutines_version = '0.1.0-SNAPSHOT' // Change this line
     }
 }
 ```
@@ -167,4 +167,4 @@ https://bintray.com/beepiz/maven/blegattcoroutines).
 
 ## New versions notifications
 To get notified for new versions, be sure to click on "Watch" on the
-[splitties Bintray page](https://bintray.com/beepiz/maven/blegattcoroutines).
+[BleGattCoroutines Bintray page](https://bintray.com/beepiz/maven/blegattcoroutines).
