@@ -38,7 +38,7 @@ allprojects {
         supportLibs_version = '27.1.1'
         arch_lifecycle_version = '1.1.1'
         arch_room_version = '1.0.0'
-        constraintLayout_version = '1.1.0-beta5'
+        constraintLayout_version = '1.1.0'
 
         playServices_version = '11.8.0'
 
