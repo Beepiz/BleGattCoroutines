@@ -72,8 +72,8 @@ if (isSnapshot) {
         publish {
             repository {
                 repoKey = 'oss-snapshot-local'
-                username = bintray_user
-                password = bintray_api_key
+                username = beepiz_bintray_user
+                password = beepiz_bintray_api_key
                 maven = true
             }
             defaults {
