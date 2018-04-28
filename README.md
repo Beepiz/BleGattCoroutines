@@ -77,7 +77,7 @@ the list of the services on the connected device.
 to be completed before, as usual.
 - Characteristic write, using `writeCharacteristic(…)`. Services discovery
 has to be completed before, as usual.
-- ReliableWrite, with `reliableWrite { … }`. Implemented, but couldn't be
+- ReliableWrite, with `reliableWrite { … }`. Implemented, but could not be
 tested yet. Open an issue if your device supports it
 - Descriptor read, using `readDescriptor(…)`. Services discovery has to be
 completed before, as usual.
@@ -88,7 +88,7 @@ completed before, as usual.
 yet. Feedback wanted.
 - Toggling characteristic update notifications with
 `setCharacteristicNotificationsEnabled(…)`. Tied to NOTIFY feature.
-- PHY, using `readPhy()`. Only supported in Android O. Hasn't been tested.
+- PHY, using `readPhy()`. Only supported in Android O. Has not been tested.
 We don't know what this is either, to be honest.
 
 When you're done with the BLE device (you need to be done before the
