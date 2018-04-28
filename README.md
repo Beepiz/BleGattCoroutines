@@ -12,7 +12,7 @@ Bluetooth Low Energy GATT (General Attribute), that is, the connection part of t
 As we needed to have an Android app interact with a Bluetooth Low Energy device, we found the
 Android BluetoothGatt API and a few RxJava libraries built on top of it. Unfortunately, none suited our needs:
 - The vanilla Android BluetoothGatt API is extremely hard to get right, because you have to provide a single
-instance of what we call a "God Callback", that is, an instance of a class with overrideable methods that
+instance of what we call a "God Callback", that is, an instance of a class with overridable methods that
 asynchronously receive the results off all operations of a given type (for example, the result of a
 characteristic you requested to read, or the result of whether a characteristic write went well or failed.
 You're on your own to make readable code with this, where unrelated characteristic reads, writes or other
@@ -46,12 +46,12 @@ If you want your code to suspend until the connection is established, call `awai
 Immediately after calling `connect()`, you can perform the operations you want. If you didn't await the connection before attempting your operations, they will just suspend until the connection is established and then will be executed in a first-come first-served basis (just make sure `connect()` is called before any operation, or asynchronously to avoid dead coroutines).
 
 The currently supported GATT operations on the `GattConnection` class are:
-- Services discovery, using `disoverServices()` which returns and cache the list of the services on the connected device.
-- Characteristic read, using `readCharacteristic(…)`. Services disovery has to be completed before, as usual.
-- Characteristic write, using `writeCharacteristic(…)`. Services disovery has to be completed before, as usual.
+- Services discovery, using `discoverServices()` which returns and cache the list of the services on the connected device.
+- Characteristic read, using `readCharacteristic(…)`. Services discovery has to be completed before, as usual.
+- Characteristic write, using `writeCharacteristic(…)`. Services discovery has to be completed before, as usual.
 - ReliableWrite, with `reliableWrite { … }`. Implemented, but couldn't be tested yet. Open an issue if your device supports it
-- Descriptor read, using `readDescriptor(…)`. Services disovery has to be completed before, as usual.
-- Descriptor write, using `writeDescriptor(…)`. Services disovery has to be completed before, as usual.
+- Descriptor read, using `readDescriptor(…)`. Services discovery has to be completed before, as usual.
+- Descriptor write, using `writeDescriptor(…)`. Services discovery has to be completed before, as usual.
 - RSSI read, using `readRemoteRssi(…)`.
 - NOTIFY characteristics with the `notifyChannel`. These haven't been tested yet. Feedback wanted.
 - Toggling characteristic update notifications with `setCharacteristicNotificationsEnabled(…)`. Tied to NOTIFY feature.
@@ -84,7 +84,7 @@ fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch(
 }
 ```
 
-The snippet below is the example you can find in the sample, powered by two extension methods for brevity (`deviceFor(…)` and `useBasic { device, services -> … }`). It also uses the `GenericAccess` object, which is the defition of the standard Bluetooth GATT "Generic access". It includes extension functions and properties for easy and readable usage. You can write a similar specification for any BLE device or `BluetoothGattService` you want.
+The snippet below is the example you can find in the sample, powered by two extension methods for brevity (`deviceFor(…)` and `useBasic { device, services -> … }`). It also uses the `GenericAccess` object, which is the definition of the standard Bluetooth GATT "Generic access". It includes extension functions and properties for easy and readable usage. You can write a similar specification for any BLE device or `BluetoothGattService` you want.
 ```kotlin
 private val myEddystoneUrlBeaconMacAddress = "F2:D6:43:93:70:7A"
 private val defaultDeviceMacAddress = myEddystoneUrlBeaconMacAddress
