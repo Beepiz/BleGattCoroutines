@@ -101,7 +101,10 @@ again later.
 
 ## Examples
 
-Here's a basic example that just logs the characteristics (using [the `print()` method defined here](https://github.com/Beepiz/BleGattCoroutines/blob/e033fdeb82738bc490fa85968ad1ebc8482d2219/app/src/main/java/com/beepiz/blegattcoroutines/sample/extensions/GattPrint.kt#L12)):
+Here's a basic example that just logs the characteristics (using
+[the `print()` method defined here](
+https://github.com/Beepiz/BleGattCoroutines/blob/e033fdeb82738bc490fa85968ad1ebc8482d2219/app/src/main/java/com/beepiz/blegattcoroutines/sample/extensions/GattPrint.kt#L12)
+):
 ```kotlin
 fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch(UI) {
     val deviceConnection = GattConnection(bluetoothDevice = this@logGattServices)
@@ -122,7 +125,13 @@ fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch(
 }
 ```
 
-The snippet below is the example you can find in the sample, powered by two extension methods for brevity (`deviceFor(…)` and `useBasic { device, services -> … }`). It also uses the `GenericAccess` object, which is the definition of the standard Bluetooth GATT "Generic access". It includes extension functions and properties for easy and readable usage. You can write a similar specification for any BLE device or `BluetoothGattService` you want.
+The snippet below is the example you can find in the sample, powered by two
+extension methods for brevity (`deviceFor(…)` and `useBasic { device,
+services -> … }`). It also uses the `GenericAccess` object, which is the
+definition of the standard Bluetooth GATT "Generic access". It includes
+extension functions and properties for easy and readable usage. You can
+write a similar specification for any BLE device or `BluetoothGattService`
+you want.
 ```kotlin
 private val myEddystoneUrlBeaconMacAddress = "F2:D6:43:93:70:7A"
 private val defaultDeviceMacAddress = myEddystoneUrlBeaconMacAddress
@@ -139,7 +148,9 @@ fun logNameAndAppearance(deviceMacAddress: String = defaultDeviceMacAddress) = l
     }
 }
 ```
-When connected to my [Google Beacon](https://twitter.com/GDGTours/status/732992233817972736), the code above outputs the following in logcat:
+When connected to my [Google Beacon](
+https://twitter.com/GDGTours/status/732992233817972736
+), the code above outputs the following in logcat:
 ```console
 I/MainViewModel$logNameAndAppearance: Connected!
 I/MainViewModel$logNameAndAppearance: Services discovered!
