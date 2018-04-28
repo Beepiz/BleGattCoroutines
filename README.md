@@ -66,14 +66,9 @@ With this `BluetoothDevice` instance, you can create a `GattConnection`
 object, which will be key to perform Bluetooth GATT operations using
 coroutines.
 
-On this `GattConnection` object, call `connect()` to initiate the connection
-attempt. If you want your code to suspend until the connection is
-established, call `await()` on the `connect()` result. Immediately after
-calling `connect()`, you can perform the operations you want. If you didn't
-await the connection before attempting your operations, they will just
-suspend until the connection is established and then will be executed in a
-first-come first-served basis (just make sure `connect()` is called before
-any operation, or asynchronously to avoid dead coroutines).
+On this `GattConnection` object, call `connect()` to initiate the connection.  Immediately after
+It will suspend until the connection is established, then you use the
+connection:
 
 The currently supported GATT operations on the `GattConnection` class are:
 - Services discovery, using `discoverServices()` which returns and cache
@@ -102,9 +97,7 @@ that the user didn't disconnect), call `close()`.
 
 If you want to reconnect within seconds, or a few minutes to the same device,
 you can call `disconnect()` instead, which will allow to call `connect()`
-again later. Note that just like `connect()`, `disconnect()` returns a
-`Deferred<Unit>` which you can await is needed by calling the obvious
-`await()` fun.
+again later.
 
 ## Examples
 
