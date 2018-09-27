@@ -1,18 +1,16 @@
 package com.beepiz.blegattcoroutines.sample.common
 
-import android.arch.lifecycle.ViewModel
 import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
 import android.support.annotation.RequiresApi
 import com.beepiz.blegattcoroutines.experimental.genericaccess.GenericAccess
 import com.beepiz.blegattcoroutines.sample.common.extensions.deviceFor
 import com.beepiz.blegattcoroutines.sample.common.extensions.useBasic
 import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import splitties.toast.toast
 import timber.log.Timber
 
-class MainViewModel : ViewModel() {
+class MainViewModel : ScopedViewModel() {
 
     private val myEddystoneUrlBeaconMacAddress = "F2:D6:43:93:70:7A"
     private val iBks12MacAddress = "F6:61:CF:AF:D0:07"
@@ -24,7 +22,7 @@ class MainViewModel : ViewModel() {
     fun logNameAndAppearance(deviceMacAddress: String = defaultDeviceMacAddress,
                              connectionTimeoutInMillis: Long = 5000L) {
         operationAttempt?.cancel()
-        operationAttempt = launch(UI) {
+        operationAttempt = launch {
             deviceFor(deviceMacAddress).useBasic(connectionTimeoutInMillis) { device, services ->
                 services.forEach { Timber.d("Service found with UUID: ${it.uuid}") }
                 with(GenericAccess) {
@@ -36,9 +34,5 @@ class MainViewModel : ViewModel() {
             }
             operationAttempt = null
         }
-    }
-
-    override fun onCleared() {
-        operationAttempt?.cancel()
     }
 }
