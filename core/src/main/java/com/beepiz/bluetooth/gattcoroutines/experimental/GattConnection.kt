@@ -28,10 +28,10 @@ typealias BGD = BluetoothGattDescriptor
  */
 interface GattConnection {
     companion object {
-        @RequiresApi(18)
-        operator fun invoke(bluetoothDevice: BluetoothDevice): GattConnection {
-            return GattConnectionImpl(bluetoothDevice)
-        }
+        @RequiresApi(18) operator fun invoke(
+                bluetoothDevice: BluetoothDevice,
+                closeOnDisconnect: Boolean = true
+        ): GattConnection = GattConnectionImpl(bluetoothDevice, closeOnDisconnect)
     }
 
     val isConnected: Boolean
@@ -52,6 +52,7 @@ interface GattConnection {
      * if you don't need the connection to stay active for some amount of time.
      */
     suspend fun connect()
+
     /**
      * Suspends until the target device is disconnected, or throw if an error happens.
      *

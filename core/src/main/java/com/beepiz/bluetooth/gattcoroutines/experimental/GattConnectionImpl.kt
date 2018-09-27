@@ -10,6 +10,8 @@ import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
 import android.os.Build.VERSION_CODES.LOLLIPOP
 import android.os.Build.VERSION_CODES.O
 import android.support.annotation.RequiresApi
+import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.getValue
+import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.setValue
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.Dispatchers
@@ -19,6 +21,8 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.channels.SendChannel
+import kotlinx.coroutines.experimental.channels.consumeEach
+import kotlinx.coroutines.experimental.channels.first
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
@@ -31,16 +35,20 @@ import kotlin.coroutines.experimental.CoroutineContext
 @RequiresApi(JELLY_BEAN_MR2)
 private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 
-class ConnectionClosedException(
-        cause: Throwable? = null
-) : CancellationException("The connection has been irrevocably closed.") {
+class ConnectionClosedException internal constructor(
+        cause: Throwable? = null,
+        messageSuffix: String = ""
+) : CancellationException("The connection has been irrevocably closed$messageSuffix.") {
     init {
         initCause(cause)
     }
 }
 
 @RequiresApi(18)
-internal class GattConnectionImpl(bluetoothDevice: BluetoothDevice) : GattConnection, CoroutineScope {
+internal class GattConnectionImpl(
+        bluetoothDevice: BluetoothDevice,
+        closeOnDisconnect: Boolean = true
+) : GattConnection, CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext = Dispatchers.Main + job
 
@@ -62,37 +70,38 @@ internal class GattConnectionImpl(bluetoothDevice: BluetoothDevice) : GattConnec
     private val mtuChannel = Channel<GattResponse<Int>>()
     private val phyReadChannel = Channel<GattResponse<GattConnection.Phy>>()
 
-    override var isConnected = false
-        private set(connected) {
-            field = connected
-            connectionGate.isLocked = !connected
-        }
-    private inline val isClosed get() = !isConnected && !connectionGate.isLocked
+    private val isConnectedBroadcastChannel = ConflatedBroadcastChannel(false)
+    private val isConnectedChannel get() = isConnectedBroadcastChannel.openSubscription()
+    override var isConnected by isConnectedBroadcastChannel; private set
+    private var isClosed = false
     private var closedException: ConnectionClosedException? = null
+    private val stateChangeBroadcastChannel = ConflatedBroadcastChannel<GattConnection.StateChange>()
 
     override val stateChangeChannel get() = stateChangeBroadcastChannel.openSubscription()
-    private val stateChangeBroadcastChannel = ConflatedBroadcastChannel<GattConnection.StateChange>()
 
     override val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
 
     override suspend fun connect() {
         checkNotClosed()
         gatt.connect().checkOperationInitiationSucceeded()
-        connectionGate.passThroughWhenUnlocked()
+        isConnectedChannel.first { connected -> connected }
     }
 
     override suspend fun disconnect() {
         checkNotClosed()
         gatt.disconnect()
-        connectionGate.awaitLock()
+        isConnectedChannel.first { connected -> !connected }
     }
 
     override fun close(notifyStateChangeChannel: Boolean) {
-        val cause = ConnectionClosedException()
+        closeInternal(notifyStateChangeChannel, ConnectionClosedException())
+    }
+
+    private fun closeInternal(notifyStateChangeChannel: Boolean, cause: ConnectionClosedException) {
         closedException = cause
         gatt.close()
+        isClosed = true
         isConnected = false
-        connectionGate.isLocked = false
         if (notifyStateChangeChannel) {
             stateChangeBroadcastChannel.offer(GattConnection.StateChange(STATUS_SUCCESS, BluetoothProfile.STATE_DISCONNECTED))
         }
@@ -217,7 +226,6 @@ internal class GattConnectionImpl(bluetoothDevice: BluetoothDevice) : GattConnec
         if (!this) throw OperationInitiationFailedException()
     }
 
-    private val connectionGate = Gate(locked = !isConnected)
     /** @see gattRequest */
     private val bleOperationMutex = Mutex()
     private val reliableWritesMutex = Mutex()
@@ -239,7 +247,6 @@ internal class GattConnectionImpl(bluetoothDevice: BluetoothDevice) : GattConnec
             else -> bleOperationMutex
         }
         return mutex.withLock {
-            connectionGate.passThroughWhenUnlocked()
             checkNotClosed()
             operation().checkOperationInitiationSucceeded()
             val response = ch.receive()
@@ -270,5 +277,16 @@ internal class GattConnectionImpl(bluetoothDevice: BluetoothDevice) : GattConnec
 
     private class GattResponse<out E>(val e: E, val status: Int) {
         val isSuccess = status == STATUS_SUCCESS
+    }
+
+    init {
+        if (closeOnDisconnect) launch {
+            stateChangeChannel.consumeEach { stateChange ->
+                if (stateChange.newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    val cause = ConnectionClosedException(messageSuffix = " because of disconnection")
+                    closeInternal(notifyStateChangeChannel = false, cause = cause)
+                }
+            }
+        }
     }
 }
