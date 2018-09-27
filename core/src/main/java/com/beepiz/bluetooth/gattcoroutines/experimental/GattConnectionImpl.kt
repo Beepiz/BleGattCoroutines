@@ -95,7 +95,6 @@ internal class GattConnectionImpl(
         if (notifyStateChangeChannel) {
             stateChangeBroadcastChannel.offer(GattConnection.StateChange(STATUS_SUCCESS, BluetoothProfile.STATE_DISCONNECTED))
         }
-        check(isClosed)
         rssiChannel.close(cause)
         servicesDiscoveryChannel.close(cause)
         readChannel.close(cause)
