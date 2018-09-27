@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.os.Build
 import android.support.annotation.RequiresApi
+import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.withTimeout
 import java.util.*
@@ -14,6 +15,15 @@ import java.util.*
 typealias BG = BluetoothGatt
 typealias BGC = BluetoothGattCharacteristic
 typealias BGD = BluetoothGattDescriptor
+
+class ConnectionClosedException internal constructor(
+        cause: Throwable? = null,
+        messageSuffix: String = ""
+) : CancellationException("The connection has been irrevocably closed$messageSuffix.") {
+    init {
+        initCause(cause)
+    }
+}
 
 /**
  * The entry point of BluetoothGatt with coroutines.

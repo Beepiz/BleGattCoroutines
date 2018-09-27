@@ -12,7 +12,6 @@ import android.os.Build.VERSION_CODES.O
 import android.support.annotation.RequiresApi
 import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.getValue
 import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.setValue
-import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.Job
@@ -34,15 +33,6 @@ import kotlin.coroutines.experimental.CoroutineContext
 
 @RequiresApi(JELLY_BEAN_MR2)
 private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
-
-class ConnectionClosedException internal constructor(
-        cause: Throwable? = null,
-        messageSuffix: String = ""
-) : CancellationException("The connection has been irrevocably closed$messageSuffix.") {
-    init {
-        initCause(cause)
-    }
-}
 
 @RequiresApi(18)
 internal class GattConnectionImpl(
