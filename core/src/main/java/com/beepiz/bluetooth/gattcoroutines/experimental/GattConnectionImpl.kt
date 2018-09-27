@@ -15,7 +15,6 @@ import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.Main
-import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
@@ -107,6 +106,7 @@ internal class GattConnectionImpl(bluetoothDevice: BluetoothDevice) : GattConnec
         readDescChannel.close(cause)
         writeDescChannel.close(cause)
         stateChangeBroadcastChannel.close(cause)
+        job.cancel()
     }
 
     override suspend fun readRemoteRssi() = gattRequest(rssiChannel) {
@@ -193,7 +193,7 @@ internal class GattConnectionImpl(bluetoothDevice: BluetoothDevice) : GattConnec
         }
 
         override fun onCharacteristicChanged(gatt: BG, characteristic: BGC) {
-            launch(UI) { characteristicChangedChannel.send(characteristic) }
+            launch { characteristicChangedChannel.send(characteristic) }
         }
 
         override fun onDescriptorRead(gatt: BG, descriptor: BGD, status: Int) {
@@ -253,7 +253,7 @@ internal class GattConnectionImpl(bluetoothDevice: BluetoothDevice) : GattConnec
      */
     private fun <E> SendChannel<GattResponse<E>>.send(e: E, status: Int) {
         val response = GattResponse(e, status)
-        launch(UI) {
+        launch {
             send(response)
         }
     }
