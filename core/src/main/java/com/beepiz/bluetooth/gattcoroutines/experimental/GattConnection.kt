@@ -2,28 +2,12 @@ package com.beepiz.bluetooth.gattcoroutines.experimental
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import android.os.Build
 import android.support.annotation.RequiresApi
-import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
 import kotlinx.coroutines.experimental.withTimeout
 import java.util.*
-
-typealias BG = BluetoothGatt
-typealias BGC = BluetoothGattCharacteristic
-typealias BGD = BluetoothGattDescriptor
-
-class ConnectionClosedException internal constructor(
-        cause: Throwable? = null,
-        messageSuffix: String = ""
-) : CancellationException("The connection has been irrevocably closed$messageSuffix.") {
-    init {
-        initCause(cause)
-    }
-}
 
 /**
  * The entry point of BluetoothGatt with coroutines.
@@ -141,7 +125,7 @@ interface GattConnection {
      * app.**
      *
      * Dispatches fine grained connection changes, including errors.
-     * You can consume this channel in an `async(UI) { … }` block (without awaiting completion,
+     * You can consume this channel in a separate coroutine (without awaiting completion,
      * unless you want to await until [close] is called) and perform the logic you want according
      * to connection state changes. For example, in case of a 133 status, you could retry connection
      * a few times by calling [connect] again, or call [close] and alert the user if needed after
