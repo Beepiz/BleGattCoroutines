@@ -30,10 +30,10 @@ class MainActivity : AppCompatActivity() {
         contentView = v(::verticalLayout) {
             padding = dip(16)
             val lp = lParams(gravity = Gravity.CENTER_HORIZONTAL)
-            add(::button, lp) {
+            add(v(::button) {
                 text = "Log name and appearance of default device"
                 onClick { viewModel.logNameAndAppearance() }
-            }
+            }, lp)
         }
         if (SDK_INT >= LOLLIPOP) registerWhileResumed(BleScanHeater())
     }

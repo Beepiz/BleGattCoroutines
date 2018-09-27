@@ -2,42 +2,24 @@ package com.beepiz.bluetooth.gattcoroutines.experimental
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
-import android.bluetooth.BluetoothProfile
 import android.os.Build
-import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
-import android.os.Build.VERSION_CODES.LOLLIPOP
-import android.os.Build.VERSION_CODES.O
 import android.support.annotation.RequiresApi
 import kotlinx.coroutines.experimental.CancellationException
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.channels.SendChannel
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.sync.Mutex
-import kotlinx.coroutines.experimental.sync.withLock
 import kotlinx.coroutines.experimental.withTimeout
-import splitties.checkedlazy.uiLazy
-import splitties.init.appCtx
-import splitties.init.consume
-import splitties.uithread.isUiThread
 import java.util.*
 
 typealias BG = BluetoothGatt
 typealias BGC = BluetoothGattCharacteristic
 typealias BGD = BluetoothGattDescriptor
 
-@RequiresApi(JELLY_BEAN_MR2)
-private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
-
-class ConnectionClosedException(
-        cause: Throwable? = null
-) : CancellationException("The connection has been irrevocably closed.") {
+class ConnectionClosedException internal constructor(
+        cause: Throwable? = null,
+        messageSuffix: String = ""
+) : CancellationException("The connection has been irrevocably closed$messageSuffix.") {
     init {
         initCause(cause)
     }
@@ -54,57 +36,15 @@ class ConnectionClosedException(
  *
  * **For production apps, see [stateChangeChannel].**
  */
-@RequiresApi(18)
-class GattConnection(bluetoothDevice: BluetoothDevice) {
-
-    init {
-        checkUiThread()
-        require(bluetoothDevice.type != BluetoothDevice.DEVICE_TYPE_CLASSIC) {
-            "Can't connect GATT to Bluetooth Classic device!"
-        }
+interface GattConnection {
+    companion object {
+        @RequiresApi(18) operator fun invoke(
+                bluetoothDevice: BluetoothDevice,
+                closeOnDisconnect: Boolean = true
+        ): GattConnection = GattConnectionImpl(bluetoothDevice, closeOnDisconnect)
     }
 
-    private val rssiChannel = Channel<GattResponse<Int>>()
-    private val servicesDiscoveryChannel = Channel<GattResponse<List<BluetoothGattService>>>()
-    private val readChannel = Channel<GattResponse<BGC>>()
-    private val writeChannel = Channel<GattResponse<BGC>>()
-    private val reliableWriteChannel = Channel<GattResponse<Unit>>()
-    private val characteristicChangedChannel = Channel<BGC>()
-    private val readDescChannel = Channel<GattResponse<BGD>>()
-    private val writeDescChannel = Channel<GattResponse<BGD>>()
-    private val mtuChannel = Channel<GattResponse<Int>>()
-    private val phyReadChannel = Channel<GattResponse<Phy>>()
-
-    var isConnected = false
-        private set(connected) {
-            field = connected
-            connectionGate.isLocked = !connected
-        }
-    private inline val isClosed get() = !isConnected && !connectionGate.isLocked
-    private var closedException: ConnectionClosedException? = null
-
-    /**
-     * **You should totally use this channel and implement the appropriate behavior for a production
-     * app.**
-     *
-     * Dispatches fine grained connection changes, including errors.
-     * You can consume this channel in an `async(UI) { … }` block (without awaiting completion,
-     * unless you want to await until [close] is called) and perform the logic you want according
-     * to connection state changes. For example, in case of a 133 status, you could retry connection
-     * a few times by calling [connect] again, or call [close] and alert the user if needed after
-     * multiple errors.
-     * This channel will also receive disconnections that can happen if the device
-     * gets out of range for example. It's then up to you to decide to retry [connect] a few times,
-     * periodically, alert the user or call [close].
-     */
-    val stateChangeChannel = ConflatedBroadcastChannel<StateChange>()
-
-    /**
-     * Receives all characteristic update notifications.
-     * See [setCharacteristicNotificationsEnabled].
-     */
-    val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
-
+    val isConnected: Boolean
     /**
      * Suspends until a connection is established with the target device, or throws if an error
      * happens.
@@ -121,11 +61,7 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      * connections too. Call [close] when you don't need the connection anymore, or [disconnect]
      * if you don't need the connection to stay active for some amount of time.
      */
-    suspend fun connect() {
-        checkNotClosed()
-        gatt.connect().checkOperationInitiationSucceeded()
-        connectionGate.passThroughWhenUnlocked()
-    }
+    suspend fun connect()
 
     /**
      * Suspends until the target device is disconnected, or throw if an error happens.
@@ -133,11 +69,7 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      * Useful if you want to disconnect from the device for a relatively short time and connect
      * back later using this same instance.
      */
-    suspend fun disconnect() {
-        checkNotClosed()
-        gatt.disconnect()
-        connectionGate.awaitLock()
-    }
+    suspend fun disconnect()
 
     /**
      * No need to disconnect first if you call this method.
@@ -145,31 +77,10 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      * This [GattConnection] instance is no longer usable after this has been called, and all
      * coroutines suspended on calls to this instance will receive a cancellation signal.
      */
-    fun close(notifyStateChangeChannel: Boolean = false) {
-        val cause = ConnectionClosedException()
-        closedException = cause
-        gatt.close()
-        isConnected = false
-        connectionGate.isLocked = false
-        if (notifyStateChangeChannel) {
-            stateChangeChannel.offer(StateChange(STATUS_SUCCESS, BluetoothProfile.STATE_DISCONNECTED))
-        }
-        check(isClosed)
-        rssiChannel.close(cause)
-        servicesDiscoveryChannel.close(cause)
-        readChannel.close(cause)
-        writeChannel.close(cause)
-        reliableWriteChannel.close(cause)
-        characteristicChangedChannel.close(cause)
-        readDescChannel.close(cause)
-        writeDescChannel.close(cause)
-        stateChangeChannel.close(cause)
-    }
+    fun close(notifyStateChangeChannel: Boolean = false)
 
     /** Reads the RSSI for a connected remote device */
-    suspend fun readRemoteRssi() = gattRequest(rssiChannel) {
-        gatt.readRemoteRssi()
-    }
+    suspend fun readRemoteRssi(): Int
 
     /**
      * Use this method only if needed, and do so carefully.
@@ -181,10 +92,8 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      *
      * Throws an [OperationInitiationFailedException] if the device is not connected.
      */
-    @RequiresApi(LOLLIPOP)
-    fun requestPriority(priority: Int) {
-        gatt.requestConnectionPriority(priority).checkOperationInitiationSucceeded()
-    }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    fun requestPriority(priority: Int)
 
     /**
      * This is usually the first call you make after calling [connect].
@@ -192,9 +101,7 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      * Discovers services offered by the remote device as well as its characteristics and
      * its descriptors.
      */
-    suspend fun discoverServices() = gattRequest(servicesDiscoveryChannel) {
-        gatt.discoverServices()
-    }
+    suspend fun discoverServices(): List<BluetoothGattService>
 
     /**
      * Enable or disable notifications/indications for the passed [characteristic].
@@ -205,9 +112,7 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      * [this video](https://youtu.be/qx55Sa8UZAQ?t=28m30s) is **4 on Android 4.3**,
      * 7 on Android 4.4, and 15 on Android 5.0+.
      */
-    fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean) {
-        gatt.setCharacteristicNotification(characteristic, enable).checkOperationInitiationSucceeded()
-    }
+    fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean)
 
     /**
      * This function requires that service discovery has been completed
@@ -219,151 +124,39 @@ class GattConnection(bluetoothDevice: BluetoothDevice) {
      * @param uuid UUID of the requested service
      * @return The service of the requested UUID if supported by the remote device, or null
      */
-    fun getService(uuid: UUID): BluetoothGattService? = gatt.getService(uuid)
+    fun getService(uuid: UUID): BluetoothGattService?
 
-    suspend fun readCharacteristic(characteristic: BGC) = gattRequest(readChannel) {
-        gatt.readCharacteristic(characteristic)
-    }
-
-    suspend fun writeCharacteristic(characteristic: BGC) = gattRequest(writeChannel) {
-        gatt.writeCharacteristic(characteristic)
-    }
-
+    suspend fun readCharacteristic(characteristic: BGC): BGC
+    suspend fun writeCharacteristic(characteristic: BGC): BGC
     @RequiresApi(Build.VERSION_CODES.KITKAT)
-    suspend fun reliableWrite(writeOperations: suspend GattConnection.() -> Unit) = gattRequest(reliableWriteChannel) {
-        try {
-            reliableWriteOngoing = true
-            gatt.beginReliableWrite().checkOperationInitiationSucceeded()
-            writeOperations()
-            gatt.executeReliableWrite()
-        } catch (e: Throwable) {
-            gatt.abortReliableWrite()
-            throw e
-        } finally {
-            reliableWriteOngoing = false
-        }
-    }
+    suspend fun reliableWrite(writeOperations: suspend GattConnection.() -> Unit)
 
-    suspend fun readDescriptor(desc: BGD) = gattRequest(readDescChannel) {
-        gatt.readDescriptor(desc)
-    }
-
-    suspend fun writeDescriptor(desc: BGD) = gattRequest(writeDescChannel) {
-        gatt.writeDescriptor(desc)
-    }
-
-    @RequiresApi(O)
-    suspend fun readPhy() = gattRequest(phyReadChannel) {
-        consume { gatt.readPhy() }
-    }
-
-    private val callback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BG, status: Int, newState: Int) {
-            when (status) {
-                STATUS_SUCCESS -> isConnected = newState == BluetoothProfile.STATE_CONNECTED
-            }
-            stateChangeChannel.offer(StateChange(status, newState))
-        }
-
-        override fun onReadRemoteRssi(gatt: BG, rssi: Int, status: Int) {
-            rssiChannel.send(rssi, status)
-        }
-
-        override fun onServicesDiscovered(gatt: BG, status: Int) {
-            servicesDiscoveryChannel.send(gatt.services, status)
-        }
-
-        override fun onCharacteristicRead(gatt: BG, characteristic: BGC, status: Int) {
-            readChannel.send(characteristic, status)
-        }
-
-        override fun onCharacteristicWrite(gatt: BG, characteristic: BGC, status: Int) {
-            writeChannel.send(characteristic, status)
-        }
-
-        override fun onReliableWriteCompleted(gatt: BG, status: Int) {
-            reliableWriteChannel.send(Unit, status)
-        }
-
-        override fun onCharacteristicChanged(gatt: BG, characteristic: BGC) {
-            launch(UI) { characteristicChangedChannel.send(characteristic) }
-        }
-
-        override fun onDescriptorRead(gatt: BG, descriptor: BGD, status: Int) {
-            readDescChannel.send(descriptor, status)
-        }
-
-        override fun onDescriptorWrite(gatt: BG, descriptor: BGD, status: Int) {
-            writeDescChannel.send(descriptor, status)
-        }
-
-        override fun onMtuChanged(gatt: BG, mtu: Int, status: Int) {
-            mtuChannel.send(mtu, status)
-        }
-
-        override fun onPhyRead(gatt: BG, txPhy: Int, rxPhy: Int, status: Int) {
-            phyReadChannel.send(Phy(txPhy, rxPhy), status)
-        }
-    }
-
-    private fun Boolean.checkOperationInitiationSucceeded() {
-        if (!this) throw OperationInitiationFailedException()
-    }
-
-    private val connectionGate = Gate(locked = !isConnected)
-    /** @see gattRequest */
-    private val bleOperationMutex = Mutex()
-    private val reliableWritesMutex = Mutex()
-    private var reliableWriteOngoing = false
-
-    private val gatt: BG by uiLazy {
-        bluetoothDevice.connectGatt(appCtx, false, callback)
-    }
+    suspend fun readDescriptor(desc: BGD): BGD
+    suspend fun writeDescriptor(desc: BGD): BGD
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun readPhy(): Phy
 
     /**
-     * We need to wait for one operation to fully complete before making another one to avoid
-     * Bluetooth Gatt errors.
+     * **You should totally use this channel and implement the appropriate behavior for a production
+     * app.**
+     *
+     * Dispatches fine grained connection changes, including errors.
+     * You can consume this channel in an `async(UI) { … }` block (without awaiting completion,
+     * unless you want to await until [close] is called) and perform the logic you want according
+     * to connection state changes. For example, in case of a 133 status, you could retry connection
+     * a few times by calling [connect] again, or call [close] and alert the user if needed after
+     * multiple errors.
+     * This channel will also receive disconnections that can happen if the device
+     * gets out of range for example. It's then up to you to decide to retry [connect] a few times,
+     * periodically, alert the user or call [close].
      */
-    private suspend inline fun <E> gattRequest(ch: ReceiveChannel<GattResponse<E>>, operation: () -> Boolean): E {
-        checkUiThread()
-        checkNotClosed()
-        val mutex = when {
-            writeChannel === ch && reliableWriteOngoing -> reliableWritesMutex
-            else -> bleOperationMutex
-        }
-        return mutex.withLock {
-            connectionGate.passThroughWhenUnlocked()
-            checkNotClosed()
-            operation().checkOperationInitiationSucceeded()
-            val response = ch.receive()
-            if (response.isSuccess) response.e else throw OperationFailedException(response.status)
-        }
-    }
+    val stateChangeChannel: ReceiveChannel<StateChange>
 
     /**
-     * This code is currently not fault tolerant. The channel is irrevocably closed if the GATT
-     * status is not success.
+     * Receives all characteristic update notifications.
+     * See [setCharacteristicNotificationsEnabled].
      */
-    private fun <E> SendChannel<GattResponse<E>>.send(e: E, status: Int) {
-        val response = GattResponse(e, status)
-        launch(UI) {
-            send(response)
-        }
-    }
-
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun checkUiThread() = check(isUiThread) {
-        "Only UI Thread is supported at the moment"
-    }
-
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun checkNotClosed() {
-        if (isClosed) throw ConnectionClosedException(closedException)
-    }
-
-    private class GattResponse<out E>(val e: E, val status: Int) {
-        val isSuccess = status == STATUS_SUCCESS
-    }
+    val notifyChannel: ReceiveChannel<BGC>
 
     data class StateChange internal constructor(val status: Int, val newState: Int)
     data class Phy(val tx: Int, val rx: Int)
