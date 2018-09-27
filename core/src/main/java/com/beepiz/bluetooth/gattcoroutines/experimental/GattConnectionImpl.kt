@@ -37,7 +37,7 @@ private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 @RequiresApi(18)
 internal class GattConnectionImpl(
         bluetoothDevice: BluetoothDevice,
-        closeOnDisconnect: Boolean = true
+        closeOnDisconnect: Boolean
 ) : GattConnection, CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext = Dispatchers.Main + job
