@@ -37,7 +37,7 @@ private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 @RequiresApi(18)
 internal class GattConnectionImpl(
         bluetoothDevice: BluetoothDevice,
-        closeOnDisconnect: Boolean = true
+        closeOnDisconnect: Boolean
 ) : GattConnection, CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext = Dispatchers.Main + job
@@ -95,7 +95,7 @@ internal class GattConnectionImpl(
         if (notifyStateChangeChannel) {
             stateChangeBroadcastChannel.offer(GattConnection.StateChange(STATUS_SUCCESS, BluetoothProfile.STATE_DISCONNECTED))
         }
-        check(isClosed)
+        isConnectedBroadcastChannel.close(cause)
         rssiChannel.close(cause)
         servicesDiscoveryChannel.close(cause)
         readChannel.close(cause)
