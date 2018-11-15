@@ -1,6 +1,6 @@
 package com.beepiz.bluetooth.gattcoroutines.experimental
 
-import kotlinx.coroutines.experimental.CancellationException
+import kotlinx.coroutines.CancellationException
 
 class ConnectionClosedException internal constructor(
         cause: Throwable? = null,

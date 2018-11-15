@@ -1,11 +1,10 @@
 package com.beepiz.blegattcoroutines.sample.common
 
 import android.arch.lifecycle.ViewModel
-import kotlinx.coroutines.experimental.CoroutineScope
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.android.Main
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
 
 open class ScopedViewModel : ViewModel(), CoroutineScope {
     private val job = Job()

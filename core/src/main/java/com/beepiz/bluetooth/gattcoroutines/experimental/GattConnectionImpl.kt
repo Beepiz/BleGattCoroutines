@@ -1,35 +1,23 @@
 package com.beepiz.bluetooth.gattcoroutines.experimental
 
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattService
-import android.bluetooth.BluetoothProfile
+import android.bluetooth.*
 import android.os.Build
-import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
-import android.os.Build.VERSION_CODES.LOLLIPOP
-import android.os.Build.VERSION_CODES.O
+import android.os.Build.VERSION_CODES.*
 import android.support.annotation.RequiresApi
 import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.getValue
 import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.setValue
-import kotlinx.coroutines.experimental.CoroutineScope
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.android.Main
-import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.channels.SendChannel
-import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.channels.first
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.sync.Mutex
-import kotlinx.coroutines.experimental.sync.withLock
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import splitties.checkedlazy.uiLazy
 import splitties.init.appCtx
 import splitties.uithread.isUiThread
 import java.util.*
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 @RequiresApi(JELLY_BEAN_MR2)
 private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
@@ -39,6 +27,8 @@ internal class GattConnectionImpl(
         bluetoothDevice: BluetoothDevice,
         closeOnDisconnect: Boolean
 ) : GattConnection, CoroutineScope {
+    val descriptorUUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
     private val job = Job()
     override val coroutineContext: CoroutineContext = Dispatchers.Main + job
 
@@ -121,8 +111,17 @@ internal class GattConnectionImpl(
         gatt.discoverServices()
     }
 
-    override fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean) {
+    override fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean, type: ByteArray) {
         gatt.setCharacteristicNotification(characteristic, enable).checkOperationInitiationSucceeded()
+
+
+        val descriptor = characteristic.getDescriptor(descriptorUUID)
+        when(enable) {
+            true -> descriptor.value = type
+            false -> descriptor.value = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
+        }
+
+        gatt.writeDescriptor(descriptor)
     }
 
     override fun getService(uuid: UUID): BluetoothGattService? = gatt.getService(uuid)

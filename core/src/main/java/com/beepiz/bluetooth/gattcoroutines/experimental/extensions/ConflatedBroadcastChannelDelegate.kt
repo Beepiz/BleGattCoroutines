@@ -1,6 +1,6 @@
 package com.beepiz.bluetooth.gattcoroutines.experimental.extensions
 
-import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlin.reflect.KProperty
 
 @Suppress("NOTHING_TO_INLINE")

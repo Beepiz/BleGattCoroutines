@@ -5,8 +5,7 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattService
 import android.os.Build
 import android.support.annotation.RequiresApi
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.withTimeout
+import kotlinx.coroutines.channels.ReceiveChannel
 import java.util.*
 
 /**
@@ -96,7 +95,7 @@ interface GattConnection {
      * [this video](https://youtu.be/qx55Sa8UZAQ?t=28m30s) is **4 on Android 4.3**,
      * 7 on Android 4.4, and 15 on Android 5.0+.
      */
-    fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean)
+    fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean, type: ByteArray)
 
     /**
      * This function requires that service discovery has been completed

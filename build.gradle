@@ -1,13 +1,13 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.2.71'
+    ext.kotlin_version = '1.3.10'
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.0'
+        classpath 'com.android.tools.build:gradle:3.2.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
@@ -24,8 +24,8 @@ allprojects {
         jcenter()
     }
     ext {
-        projectBuildTools_version = '27.0.3'
-        projectSdk_version = 27
+        projectBuildTools_version = '28.0.3'
+        projectSdk_version = 28
         projectSdk_target_version = projectSdk_version
 
         // Libraries
@@ -43,7 +43,7 @@ allprojects {
         playServices_version = '12.0.1'
         wearOS_version = '2.3.0'
 
-        kotlinxCoroutines_version = '0.26.1'
+        kotlinxCoroutines_version = '1.0.1'
 
         splitties_version = '2.0.0-alpha4'
 

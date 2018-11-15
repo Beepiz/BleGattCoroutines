@@ -5,8 +5,9 @@ import android.support.annotation.RequiresApi
 import com.beepiz.blegattcoroutines.experimental.genericaccess.GenericAccess
 import com.beepiz.blegattcoroutines.sample.common.extensions.deviceFor
 import com.beepiz.blegattcoroutines.sample.common.extensions.useBasic
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import splitties.toast.toast
 import timber.log.Timber
 
@@ -22,7 +23,7 @@ class MainViewModel : ScopedViewModel() {
     fun logNameAndAppearance(deviceMacAddress: String = defaultDeviceMacAddress,
                              connectionTimeoutInMillis: Long = 5000L) {
         operationAttempt?.cancel()
-        operationAttempt = launch {
+        operationAttempt = GlobalScope.launch {
             deviceFor(deviceMacAddress).useBasic(connectionTimeoutInMillis) { device, services ->
                 services.forEach { Timber.d("Service found with UUID: ${it.uuid}") }
                 with(GenericAccess) {

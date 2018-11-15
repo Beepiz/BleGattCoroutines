@@ -4,9 +4,9 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGattService
 import android.support.annotation.RequiresApi
 import com.beepiz.bluetooth.gattcoroutines.experimental.GattConnection
-import kotlinx.coroutines.experimental.CancellationException
-import kotlinx.coroutines.experimental.TimeoutCancellationException
-import kotlinx.coroutines.experimental.withTimeout
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import splitties.systemservices.bluetoothManager
 import splitties.toast.toast
 import timber.log.Timber
