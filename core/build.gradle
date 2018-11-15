@@ -34,7 +34,7 @@ dependencies {
 
     // Splitties
     api "com.louiscad.splitties:splitties-appctx:$splitties_version"
-    api "com.louiscad.splitties:splitties-uithread:$splitties_version"
+    api "com.louiscad.splitties:splitties-mainthread:$splitties_version"
     api "com.louiscad.splitties:splitties-checkedlazy:$splitties_version"
 
     testImplementation 'junit:junit:4.12'

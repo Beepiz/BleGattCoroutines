@@ -5,18 +5,17 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.LOLLIPOP
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.view.Gravity
 import com.beepiz.blegattcoroutines.sample.common.BleScanHeater
 import com.beepiz.blegattcoroutines.sample.common.MainViewModel
-import com.beepiz.blegattcoroutines.sample.common.extensions.activityScope
 import com.beepiz.blegattcoroutines.sample.common.register.registerWhileResumed
+import splitties.arch.lifecycle.activityScope
 import splitties.dimensions.dip
-import splitties.viewdsl.appcompat.button
 import splitties.viewdsl.core.add
+import splitties.viewdsl.core.button
 import splitties.viewdsl.core.contentView
 import splitties.viewdsl.core.lParams
-import splitties.viewdsl.core.v
 import splitties.viewdsl.core.verticalLayout
+import splitties.views.gravityCenterHorizontal
 import splitties.views.onClick
 import splitties.views.padding
 
@@ -27,10 +26,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        contentView = v(::verticalLayout) {
+        contentView = verticalLayout {
             padding = dip(16)
-            val lp = lParams(gravity = Gravity.CENTER_HORIZONTAL)
-            add(v(::button) {
+            val lp = lParams(gravity = gravityCenterHorizontal)
+            add(button {
                 text = "Log name and appearance of default device"
                 onClick { viewModel.logNameAndAppearance() }
             }, lp)

@@ -15,7 +15,6 @@ import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.setValue
 import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.experimental.channels.ReceiveChannel
@@ -25,9 +24,9 @@ import kotlinx.coroutines.experimental.channels.first
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
-import splitties.checkedlazy.uiLazy
+import splitties.checkedlazy.mainThreadLazy
 import splitties.init.appCtx
-import splitties.uithread.isUiThread
+import splitties.mainthread.isMainThread
 import java.util.*
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -43,7 +42,7 @@ internal class GattConnectionImpl(
     override val coroutineContext: CoroutineContext = Dispatchers.Main + job
 
     init {
-        checkUiThread()
+        checkMainThread()
         require(bluetoothDevice.type != BluetoothDevice.DEVICE_TYPE_CLASSIC) {
             "Can't connect GATT to Bluetooth Classic device!"
         }
@@ -221,7 +220,7 @@ internal class GattConnectionImpl(
     private val reliableWritesMutex = Mutex()
     private var reliableWriteOngoing = false
 
-    private val gatt: BG by uiLazy {
+    private val gatt: BG by mainThreadLazy {
         bluetoothDevice.connectGatt(appCtx, false, callback)
     }
 
@@ -230,7 +229,7 @@ internal class GattConnectionImpl(
      * Bluetooth Gatt errors.
      */
     private suspend inline fun <E> gattRequest(ch: ReceiveChannel<GattResponse<E>>, operation: () -> Boolean): E {
-        checkUiThread()
+        checkMainThread()
         checkNotClosed()
         val mutex = when {
             writeChannel === ch && reliableWriteOngoing -> reliableWritesMutex
@@ -256,7 +255,7 @@ internal class GattConnectionImpl(
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    private inline fun checkUiThread() = check(isUiThread) {
+    private inline fun checkMainThread() = check(isMainThread) {
         "Only UI Thread is supported at the moment"
     }
 
