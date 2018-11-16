@@ -90,9 +90,15 @@ internal class GattConnectionImpl(
         closedException = cause
         gatt.close()
         isClosed = true
-        isConnected = false
-        if (notifyStateChangeChannel) {
-            stateChangeBroadcastChannel.offer(GattConnection.StateChange(STATUS_SUCCESS, BluetoothProfile.STATE_DISCONNECTED))
+        try {
+            isConnected = false
+            if (notifyStateChangeChannel) {
+                stateChangeBroadcastChannel.offer(GattConnection.StateChange(STATUS_SUCCESS, BluetoothProfile.STATE_DISCONNECTED))
+            }
+        } catch (ignored: ConnectionClosedException) {
+            // isConnected property is delegated by a channel that throws if already closed,
+            // but we don't need the exception to be thrown again here, so we ignore it.
+            // We do the same for stateChangeBroadcastChannel.offer(…) call.
         }
         isConnectedBroadcastChannel.close(cause)
         rssiChannel.close(cause)
