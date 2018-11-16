@@ -6,12 +6,11 @@ import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothProfile
 import android.os.Build
+import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
 import android.os.Build.VERSION_CODES.LOLLIPOP
 import android.os.Build.VERSION_CODES.O
 import android.support.annotation.RequiresApi
-import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.getValue
-import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.setValue
 import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.Job
@@ -24,7 +23,7 @@ import kotlinx.coroutines.experimental.channels.first
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
 import kotlinx.coroutines.experimental.sync.withLock
-import splitties.checkedlazy.mainThreadLazy
+import splitties.exceptions.illegal
 import splitties.init.appCtx
 import splitties.mainthread.isMainThread
 import java.util.*
@@ -35,8 +34,8 @@ private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 
 @RequiresApi(18)
 internal class GattConnectionImpl(
-        bluetoothDevice: BluetoothDevice,
-        closeOnDisconnect: Boolean
+        private val bluetoothDevice: BluetoothDevice,
+        private val connectionSettings: GattConnection.ConnectionSettings
 ) : GattConnection, CoroutineScope {
     private val job = Job()
     override val coroutineContext: CoroutineContext = Dispatchers.Main + job
@@ -61,7 +60,9 @@ internal class GattConnectionImpl(
 
     private val isConnectedBroadcastChannel = ConflatedBroadcastChannel(false)
     private val isConnectedChannel get() = isConnectedBroadcastChannel.openSubscription()
-    override var isConnected by isConnectedBroadcastChannel; private set
+    override var isConnected: Boolean
+        get() = !isClosed && isConnectedBroadcastChannel.value
+        private set(value) = isConnectedBroadcastChannel.offer(value).let { Unit }
     private var isClosed = false
     private var closedException: ConnectionClosedException? = null
     private val stateChangeBroadcastChannel = ConflatedBroadcastChannel<GattConnection.StateChange>()
@@ -70,15 +71,39 @@ internal class GattConnectionImpl(
 
     override val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
 
+    private var bluetoothGatt: BG? = null
+    private fun requireGatt(): BG = bluetoothGatt ?: illegal("Call connect() first!")
+
     override suspend fun connect() {
+        checkMainThread()
         checkNotClosed()
-        gatt.connect().checkOperationInitiationSucceeded()
+        val gatt = bluetoothGatt
+        if (gatt == null) {
+            val device = bluetoothDevice
+            bluetoothGatt = with(connectionSettings) {
+                when {
+                    SDK_INT >= 26 -> device.connectGatt(appCtx, autoConnect, callback, transport, phy)
+                    SDK_INT >= 23 -> device.connectGatt(appCtx, autoConnect, callback, transport)
+                    else -> device.connectGatt(appCtx, autoConnect, callback)
+                }
+            } ?: illegal("No BluetoothGatt instance returned. Is Bluetooth supported and enabled?")
+        } else {
+            require(connectionSettings.allowAutoConnect) {
+                "Connecting more than once would implicitly enable auto connect, which is not" +
+                        "allowed with current connection settings."
+            }
+            gatt.connect().checkOperationInitiationSucceeded()
+        }
         isConnectedChannel.first { connected -> connected }
     }
 
     override suspend fun disconnect() {
+        require(connectionSettings.allowAutoConnect) {
+            "Disconnect is not supported when auto connect is not allowed. Use close() instead."
+        }
+        checkMainThread()
         checkNotClosed()
-        gatt.disconnect()
+        requireGatt().disconnect()
         isConnectedChannel.first { connected -> !connected }
     }
 
@@ -88,7 +113,7 @@ internal class GattConnectionImpl(
 
     private fun closeInternal(notifyStateChangeChannel: Boolean, cause: ConnectionClosedException) {
         closedException = cause
-        gatt.close()
+        bluetoothGatt?.close()
         isClosed = true
         try {
             isConnected = false
@@ -119,7 +144,7 @@ internal class GattConnectionImpl(
 
     @RequiresApi(LOLLIPOP)
     override fun requestPriority(priority: Int) {
-        gatt.requestConnectionPriority(priority).checkOperationInitiationSucceeded()
+        requireGatt().requestConnectionPriority(priority).checkOperationInitiationSucceeded()
     }
 
     override suspend fun discoverServices(): List<BluetoothGattService> = gattRequest(servicesDiscoveryChannel) {
@@ -127,10 +152,10 @@ internal class GattConnectionImpl(
     }
 
     override fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean) {
-        gatt.setCharacteristicNotification(characteristic, enable).checkOperationInitiationSucceeded()
+        requireGatt().setCharacteristicNotification(characteristic, enable).checkOperationInitiationSucceeded()
     }
 
-    override fun getService(uuid: UUID): BluetoothGattService? = gatt.getService(uuid)
+    override fun getService(uuid: UUID): BluetoothGattService? = requireGatt().getService(uuid)
 
     override suspend fun readCharacteristic(characteristic: BGC) = gattRequest(readChannel) {
         readCharacteristic(characteristic)
@@ -144,11 +169,11 @@ internal class GattConnectionImpl(
     override suspend fun reliableWrite(writeOperations: suspend GattConnection.() -> Unit) = gattRequest(reliableWriteChannel) {
         try {
             reliableWriteOngoing = true
-            gatt.beginReliableWrite().checkOperationInitiationSucceeded()
+            requireGatt().beginReliableWrite().checkOperationInitiationSucceeded()
             writeOperations()
-            gatt.executeReliableWrite()
+            requireGatt().executeReliableWrite()
         } catch (e: Throwable) {
-            gatt.abortReliableWrite()
+            requireGatt().abortReliableWrite()
             throw e
         } finally {
             reliableWriteOngoing = false
@@ -226,10 +251,6 @@ internal class GattConnectionImpl(
     private val reliableWritesMutex = Mutex()
     private var reliableWriteOngoing = false
 
-    private val gatt: BG by mainThreadLazy {
-        bluetoothDevice.connectGatt(appCtx, false, callback)
-    }
-
     /**
      * We need to wait for one operation to fully complete before making another one to avoid
      * Bluetooth Gatt errors.
@@ -246,7 +267,7 @@ internal class GattConnectionImpl(
         }
         return mutex.withLock {
             checkNotClosed()
-            gatt.operation().checkOperationInitiationSucceeded()
+            requireGatt().operation().checkOperationInitiationSucceeded()
             val response = ch.receive()
             if (response.isSuccess) response.e else throw OperationFailedException(response.status)
         }
@@ -278,6 +299,7 @@ internal class GattConnectionImpl(
     }
 
     init {
+        val closeOnDisconnect = connectionSettings.allowAutoConnect.not()
         if (closeOnDisconnect) launch {
             stateChangeChannel.consumeEach { stateChange ->
                 if (stateChange.newState == BluetoothProfile.STATE_DISCONNECTED) {

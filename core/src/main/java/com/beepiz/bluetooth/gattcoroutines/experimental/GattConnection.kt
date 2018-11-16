@@ -1,5 +1,6 @@
 package com.beepiz.bluetooth.gattcoroutines.experimental
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattService
@@ -24,8 +25,20 @@ interface GattConnection {
     companion object {
         @RequiresApi(18) operator fun invoke(
                 bluetoothDevice: BluetoothDevice,
-                closeOnDisconnect: Boolean = true
-        ): GattConnection = GattConnectionImpl(bluetoothDevice, closeOnDisconnect)
+                connectionSettings: ConnectionSettings = ConnectionSettings()
+        ): GattConnection = GattConnectionImpl(bluetoothDevice, connectionSettings)
+    }
+
+    @SuppressLint("InlinedApi")
+    class ConnectionSettings(
+            val autoConnect: Boolean = false,
+            val allowAutoConnect: Boolean = autoConnect,
+            val transport: Int = BluetoothDevice.TRANSPORT_AUTO,
+            val phy: Int = BluetoothDevice.PHY_LE_1M_MASK
+    ) {
+        init {
+            if (autoConnect) require(allowAutoConnect)
+        }
     }
 
     val isConnected: Boolean
