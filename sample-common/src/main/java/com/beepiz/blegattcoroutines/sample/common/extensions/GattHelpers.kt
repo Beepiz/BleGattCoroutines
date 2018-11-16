@@ -14,14 +14,14 @@ import timber.log.Timber
 @RequiresApi(18)
 fun deviceFor(macAddress: String): BluetoothDevice = bluetoothManager.adapter.getRemoteDevice(macAddress)
 
-typealias GattBasicUsage = (GattConnection, List<BluetoothGattService>) -> Unit
-
 /**
  * Connects to the device, discovers services, executes [block] and finally closes the connection.
  */
 @RequiresApi(18)
-suspend inline fun BluetoothDevice.useBasic(connectionTimeoutInMillis: Long = 5000L,
-                                            block: GattBasicUsage) {
+suspend inline fun BluetoothDevice.useBasic(
+        connectionTimeoutInMillis: Long = 5000L,
+        block: (GattConnection, List<BluetoothGattService>) -> Unit
+) {
     val deviceConnection = GattConnection(this)
     try {
         deviceConnection.logConnectionChanges()
