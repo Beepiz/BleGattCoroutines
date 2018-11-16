@@ -114,7 +114,7 @@ internal class GattConnectionImpl(
     }
 
     override suspend fun readRemoteRssi() = gattRequest(rssiChannel) {
-        gatt.readRemoteRssi()
+        readRemoteRssi()
     }
 
     @RequiresApi(LOLLIPOP)
@@ -123,7 +123,7 @@ internal class GattConnectionImpl(
     }
 
     override suspend fun discoverServices(): List<BluetoothGattService> = gattRequest(servicesDiscoveryChannel) {
-        gatt.discoverServices()
+        discoverServices()
     }
 
     override fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean) {
@@ -133,11 +133,11 @@ internal class GattConnectionImpl(
     override fun getService(uuid: UUID): BluetoothGattService? = gatt.getService(uuid)
 
     override suspend fun readCharacteristic(characteristic: BGC) = gattRequest(readChannel) {
-        gatt.readCharacteristic(characteristic)
+        readCharacteristic(characteristic)
     }
 
     override suspend fun writeCharacteristic(characteristic: BGC) = gattRequest(writeChannel) {
-        gatt.writeCharacteristic(characteristic)
+        writeCharacteristic(characteristic)
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -156,16 +156,16 @@ internal class GattConnectionImpl(
     }
 
     override suspend fun readDescriptor(desc: BGD) = gattRequest(readDescChannel) {
-        gatt.readDescriptor(desc)
+        readDescriptor(desc)
     }
 
     override suspend fun writeDescriptor(desc: BGD) = gattRequest(writeDescChannel) {
-        gatt.writeDescriptor(desc)
+        writeDescriptor(desc)
     }
 
     @RequiresApi(O)
     override suspend fun readPhy() = gattRequest(phyReadChannel) {
-        gatt.readPhy().let { true }
+        readPhy().let { true }
     }
 
     private val callback = object : BluetoothGattCallback() {
@@ -234,7 +234,10 @@ internal class GattConnectionImpl(
      * We need to wait for one operation to fully complete before making another one to avoid
      * Bluetooth Gatt errors.
      */
-    private suspend inline fun <E> gattRequest(ch: ReceiveChannel<GattResponse<E>>, operation: () -> Boolean): E {
+    private suspend inline fun <E> gattRequest(
+            ch: ReceiveChannel<GattResponse<E>>,
+            operation: BluetoothGatt.() -> Boolean
+    ): E {
         checkMainThread()
         checkNotClosed()
         val mutex = when {
@@ -243,7 +246,7 @@ internal class GattConnectionImpl(
         }
         return mutex.withLock {
             checkNotClosed()
-            operation().checkOperationInitiationSucceeded()
+            gatt.operation().checkOperationInitiationSucceeded()
             val response = ch.receive()
             if (response.isSuccess) response.e else throw OperationFailedException(response.status)
         }
