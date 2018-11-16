@@ -10,8 +10,10 @@ def siteUrl = 'https://github.com/Beepiz/BleGattCoroutines'
 def libraryDesc = 'Make Gatt Great Again! This library allows easy and safer usage of BluetoothGatt in Android'
 
 // TODO replace with https://issuetracker.google.com/issues/72050365 once released.
-android.libraryVariants.all {
-    it.generateBuildConfig.enabled = false
+android.libraryVariants.all { variant ->
+    variant.generateBuildConfigProvider.configure {
+        it.enabled = false
+    }
 }
 
 task sourcesJar(type: Jar) {

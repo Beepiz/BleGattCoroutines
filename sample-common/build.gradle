@@ -52,7 +52,6 @@ dependencies {
     api "com.louiscad.splitties:splitties-checkedlazy:$splitties_version"
     api "com.louiscad.splitties:splitties-viewdsl-constraintlayout:$splitties_version"
     api "com.louiscad.splitties:splitties-viewdsl-appcompat:$splitties_version"
-    api "com.louiscad.splitties:splitties-viewdsl-appcompat-styles:$splitties_version"
 
     // Timber (log utility)
     api "com.jakewharton.timber:timber:$timber_version"
