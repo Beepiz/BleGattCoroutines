@@ -30,7 +30,7 @@ allprojects {
 
         // Libraries
         groupId = "com.beepiz.blegattcoroutines"
-        library_version = "0.2.0-rc3"
+        library_version = "0.2.0-SNAPSHOT"
         isSnapshot = library_version.endsWith("-SNAPSHOT")
         isRelease = !isSnapshot
 
