@@ -32,22 +32,15 @@ to have a steep learning curve, steeper than learning another programming
 language like Kotlin from Java experience, and steeper than learning Kotlin
 coroutines plus [understanding the kotlinx.coroutines library guide](
 https://github.com/Kotlin/kotlinx.coroutines/blob/master/coroutines-guide.md
-). Also, RxJava is a big library, even bigger if you have to use both
-[version 1](http://www.methodscount.com/?lib=io.reactivex%3Arxjava%3A%2B)
-and [version 2](
-http://www.methodscount.com/?lib=io.reactivex.rxjava2%3Arxjava%3A%2B) in the
-same project. In fact, RxJava2 methods count is higher than the sum of
-[Kotlin's stdlib and kotlinx.coroutines](
-http://www.methodscount.com/?lib=org.jetbrains.kotlinx%3Akotlinx-coroutines-android%3A0.20
-).
+). Also, RxJava is a big library, even bigger if you have to use both version 1
+and version 2 in the same project. RxJava2 methods count is higher than the sum of
+Kotlin's stdlib and kotlinx.coroutines.
 
-## Experimental status
+## Experimental API
 
-_This library is based on the coroutines feature of Kotlin, as well as the
-`kotlinx.coroutines` library, which are both under the experimental status.
-Consequently, this library inherits this experimental status. Also, we are
-expecting to make a few API changes based on your feedback and real world
-usages to improve this library._
+_We are expecting to make a few API changes based on your feedback and real world usages to
+improve this library. You can help by sharing your experience or feedback in the issues having
+a green "help wanted" tag._
 
 **Since the API design it not final at the moment, we're very open to
 feedback while you're using this library.**
@@ -103,10 +96,10 @@ again later.
 
 Here's a basic example that just logs the characteristics (using
 [the `print()` method defined here](
-https://github.com/Beepiz/BleGattCoroutines/blob/e033fdeb82738bc490fa85968ad1ebc8482d2219/app/src/main/java/com/beepiz/blegattcoroutines/sample/extensions/GattPrint.kt#L12)
+https://github.com/Beepiz/BleGattCoroutines/blob/dd562dc49e5623bfc874dd9ff37d62db63c04932/sample-common/src/main/java/com/beepiz/blegattcoroutines/sample/common/extensions/GattPrint.kt#L15)
 ):
 ```kotlin
-fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch(UI) {
+fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch {
     val deviceConnection = GattConnection(bluetoothDevice = this@logGattServices)
     deviceConnection.connect() // Suspends until connection is established
     val gattServices = deviceConnection.discoverServices() // Suspends until completed
@@ -136,7 +129,7 @@ you want.
 private val myEddystoneUrlBeaconMacAddress = "F2:D6:43:93:70:7A"
 private val defaultDeviceMacAddress = myEddystoneUrlBeaconMacAddress
 
-fun logNameAndAppearance(deviceMacAddress: String = defaultDeviceMacAddress) = launch(UI) {
+fun logNameAndAppearance(deviceMacAddress: String = defaultDeviceMacAddress) = launch {
     deviceFor(deviceMacAddress).useBasic { device, services ->
         services.forEach { Timber.d("Service found with UUID: ${it.uuid}") }
         with(GenericAccess) {
@@ -176,7 +169,7 @@ into your root project `build.gradle` file:
 ```groovy
 allProjects {
     ext {
-        blegattcoroutines_version = '0.2.0'
+        blegattcoroutines_version = '0.3.0'
     }
 }
 ```
@@ -201,7 +194,7 @@ allProjects {
         maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
     }
     ext {
-        blegattcoroutines_version = '0.2.0-SNAPSHOT' // Change this line
+        blegattcoroutines_version = '0.3.0-SNAPSHOT' // Change this line
     }
 }
 ```

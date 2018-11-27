@@ -1,5 +1,19 @@
 # Change log for BleGattCoroutines
 
+## Version 0.3.0 (2018-11-27)
+
+### Kotlin 1.3
+This release is compiled with Kotlin 1.3.10 (and kotlinx.coroutines 1.0.1), which
+means it is now using stable coroutines. The [Splitties](https://github.com/LouisCAD/Splitties)
+artifacts have also been updated to [version 2.0.0](
+https://github.com/LouisCAD/Splitties/blob/e77c909585f1b6d457af0fe18655e4794434ce50/CHANGELOG.md#version-200-2018-11-13
+).
+
+### Changes
+- Now uses stable coroutines.
+- All the package names changed, dropping `experimental` from the hierarchy.
+- The API is still experimental, and is annotated accordingly.
+
 ## Version 0.2.0 (2018-11-27)
 This release is compiled with Kotlin 1.2.71 and relies on the version 0.30.2
 of kotlinx.coroutines.
