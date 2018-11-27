@@ -28,4 +28,6 @@ sealed class GattException(message: String? = null) : Exception(message) {
 
 class OperationInitiationFailedException : GattException()
 /** @see BluetoothGatt */
-class OperationFailedException(val statusCode: Int) : GattException("status: ${humanReadableStatusCode(statusCode)}")
+class OperationFailedException(
+    val statusCode: Int
+) : GattException("status: ${humanReadableStatusCode(statusCode)}")

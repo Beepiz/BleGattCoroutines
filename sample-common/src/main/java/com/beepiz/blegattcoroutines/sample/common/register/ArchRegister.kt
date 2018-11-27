@@ -19,7 +19,10 @@ inline fun LifecycleOwner.registerWhileCreated(vararg registrables: Registrable)
 }
 
 @PublishedApi
-internal fun LifecycleOwner.registerWhile(minState: Lifecycle.State, registrables: Array<out Registrable>) {
+internal fun LifecycleOwner.registerWhile(
+    minState: Lifecycle.State,
+    registrables: Array<out Registrable>
+) {
     if (registrables.isEmpty()) return
     val registerNow = lifecycle.currentState.isAtLeast(minState)
     if (registerNow) registrables.register()

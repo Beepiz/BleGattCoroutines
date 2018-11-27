@@ -4,10 +4,11 @@ import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattService
-import android.os.Build
 import android.support.annotation.RequiresApi
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.withTimeout
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.withTimeout
 import java.util.*
 
 /**
@@ -23,18 +24,21 @@ import java.util.*
  */
 interface GattConnection {
     companion object {
-        @RequiresApi(18) operator fun invoke(
-                bluetoothDevice: BluetoothDevice,
-                connectionSettings: ConnectionSettings = ConnectionSettings()
+        @RequiresApi(18)
+        @ExperimentalCoroutinesApi
+        @ObsoleteCoroutinesApi
+        operator fun invoke(
+            bluetoothDevice: BluetoothDevice,
+            connectionSettings: ConnectionSettings = ConnectionSettings()
         ): GattConnection = GattConnectionImpl(bluetoothDevice, connectionSettings)
     }
 
     @SuppressLint("InlinedApi")
     class ConnectionSettings(
-            val autoConnect: Boolean = false,
-            val allowAutoConnect: Boolean = autoConnect,
-            val transport: Int = BluetoothDevice.TRANSPORT_AUTO,
-            val phy: Int = BluetoothDevice.PHY_LE_1M_MASK
+        val autoConnect: Boolean = false,
+        val allowAutoConnect: Boolean = autoConnect,
+        val transport: Int = BluetoothDevice.TRANSPORT_AUTO,
+        val phy: Int = BluetoothDevice.PHY_LE_1M_MASK
     ) {
         init {
             if (autoConnect) require(allowAutoConnect)
@@ -89,7 +93,7 @@ interface GattConnection {
      *
      * Throws an [OperationInitiationFailedException] if the device is not connected.
      */
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    @RequiresApi(21)
     fun requestPriority(priority: Int)
 
     /**
@@ -125,12 +129,12 @@ interface GattConnection {
 
     suspend fun readCharacteristic(characteristic: BGC): BGC
     suspend fun writeCharacteristic(characteristic: BGC): BGC
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    @RequiresApi(19)
     suspend fun reliableWrite(writeOperations: suspend GattConnection.() -> Unit)
 
     suspend fun readDescriptor(desc: BGD): BGD
     suspend fun writeDescriptor(desc: BGD): BGD
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(26)
     suspend fun readPhy(): Phy
 
     /**

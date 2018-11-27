@@ -1,12 +1,11 @@
 package com.beepiz.blegattcoroutines.sample.common
 
-import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
 import android.support.annotation.RequiresApi
 import com.beepiz.blegattcoroutines.experimental.genericaccess.GenericAccess
 import com.beepiz.blegattcoroutines.sample.common.extensions.deviceFor
 import com.beepiz.blegattcoroutines.sample.common.extensions.useBasic
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import splitties.toast.toast
 import timber.log.Timber
 
@@ -18,7 +17,7 @@ class MainViewModel : ScopedViewModel() {
 
     private var operationAttempt: Job? = null
 
-    @RequiresApi(JELLY_BEAN_MR2)
+    @RequiresApi(18)
     fun logNameAndAppearance(deviceMacAddress: String = defaultDeviceMacAddress,
                              connectionTimeoutInMillis: Long = 5000L) {
         operationAttempt?.cancel()

@@ -1,16 +1,16 @@
 package com.beepiz.blegattcoroutines.sample.common.extensions
 
 import com.beepiz.bluetooth.gattcoroutines.experimental.GattConnection
-import kotlinx.coroutines.experimental.CoroutineStart
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.GlobalScope
-import kotlinx.coroutines.experimental.android.Main
-import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
+@ObsoleteCoroutinesApi
 fun GattConnection.logConnectionChanges() {
-    GlobalScope.launch(Dispatchers.Main, CoroutineStart.DEFAULT) {
+    GlobalScope.launch(Dispatchers.Main) {
         stateChangeChannel.consumeEach {
             Timber.i("connection state changed: $it")
         }
