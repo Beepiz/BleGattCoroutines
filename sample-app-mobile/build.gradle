@@ -22,7 +22,7 @@ android {
 
 dependencies {
     implementation project(':sample-common')
-    debugImplementation "com.louiscad.splitties:splitties-viewdsl-ide-preview:$splitties_version"
+    debugImplementation "com.louiscad.splitties:splitties-views-dsl-ide-preview:$splitties_version"
 
     // Android Support Libraries
     implementation "com.android.support:support-annotations:$supportLibs_version"
