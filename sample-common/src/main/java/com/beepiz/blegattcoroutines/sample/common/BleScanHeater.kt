@@ -2,7 +2,6 @@ package com.beepiz.blegattcoroutines.sample.common
 
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanSettings
-import android.os.Build.VERSION_CODES.LOLLIPOP
 import android.support.annotation.RequiresApi
 import com.beepiz.blegattcoroutines.sample.common.register.Registrable
 import splitties.systemservices.bluetoothManager
@@ -13,7 +12,7 @@ import timber.log.Timber
  * the chances of connection failures (even if you just access the device directly via
  * its MAC address).
  */
-@RequiresApi(LOLLIPOP)
+@RequiresApi(21)
 class BleScanHeater(private val scanMode: Int = ScanSettings.SCAN_MODE_LOW_LATENCY) : Registrable {
 
     private val scanCallback = object : ScanCallback() {

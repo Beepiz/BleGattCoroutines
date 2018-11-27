@@ -34,9 +34,3 @@ dependencies {
 
     implementation "com.louiscad.splitties:splitties-views:$splitties_version"
 }
-
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
-}

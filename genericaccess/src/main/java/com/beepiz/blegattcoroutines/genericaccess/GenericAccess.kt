@@ -1,17 +1,18 @@
-package com.beepiz.blegattcoroutines.experimental.genericaccess
+package com.beepiz.blegattcoroutines.genericaccess
 
-import android.os.Build.VERSION_CODES.JELLY_BEAN_MR2
 import android.support.annotation.RequiresApi
-import com.beepiz.bluetooth.gattcoroutines.experimental.BGC
-import com.beepiz.bluetooth.gattcoroutines.experimental.GattConnection
-import com.beepiz.bluetooth.gattcoroutines.experimental.extensions.get
+import com.beepiz.bluetooth.gattcoroutines.BGC
+import com.beepiz.bluetooth.gattcoroutines.ExperimentalBleGattCoroutinesCoroutinesApi
+import com.beepiz.bluetooth.gattcoroutines.GattConnection
+import com.beepiz.bluetooth.gattcoroutines.extensions.requireCharacteristic
 import java.util.*
 import kotlin.experimental.and
 
 /**
  * See [official docs here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.generic_access.xml).
  */
-@RequiresApi(JELLY_BEAN_MR2)
+@RequiresApi(18)
+@ExperimentalBleGattCoroutinesCoroutinesApi
 object GenericAccess {
 
     val uuid = gattUuid(0x1800)
@@ -31,8 +32,7 @@ object GenericAccess {
         }
 
     private fun GattConnection.get(characteristicUuid: UUID): BGC {
-        val genericAccessService = getService(uuid) ?: throw IllegalStateException("Generic Access service not found. Make sure the service discovery has been performed!")
-        return genericAccessService[characteristicUuid] ?: throw IllegalStateException("Characteristic with UUID $characteristicUuid not found. Make sure the service discovery has been performed!")
+        return requireCharacteristic(uuid, characteristicUuid)
     }
 
     private suspend fun GattConnection.read(characteristicUuid: UUID) {

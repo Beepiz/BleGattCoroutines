@@ -1,9 +1,10 @@
 @file:Suppress("MemberVisibilityCanPrivate")
 
-package com.beepiz.bluetooth.gattcoroutines.experimental
+package com.beepiz.bluetooth.gattcoroutines
 
 import android.bluetooth.BluetoothGatt
 
+@ExperimentalBleGattCoroutinesCoroutinesApi
 sealed class GattException(message: String? = null) : Exception(message) {
 
     companion object {
@@ -26,6 +27,15 @@ sealed class GattException(message: String? = null) : Exception(message) {
     }
 }
 
+@ExperimentalBleGattCoroutinesCoroutinesApi
 class OperationInitiationFailedException : GattException()
+
 /** @see BluetoothGatt */
-class OperationFailedException(val statusCode: Int) : GattException("status: ${humanReadableStatusCode(statusCode)}")
+@ExperimentalBleGattCoroutinesCoroutinesApi
+class OperationFailedException(
+    val statusCode: Int
+) : GattException(
+    "status: ${humanReadableStatusCode(
+        statusCode
+    )}"
+)

@@ -1,4 +1,4 @@
-package com.beepiz.bluetooth.gattcoroutines.experimental
+package com.beepiz.bluetooth.gattcoroutines
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic

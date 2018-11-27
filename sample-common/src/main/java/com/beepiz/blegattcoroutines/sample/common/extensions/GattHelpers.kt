@@ -3,24 +3,24 @@ package com.beepiz.blegattcoroutines.sample.common.extensions
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGattService
 import android.support.annotation.RequiresApi
-import com.beepiz.bluetooth.gattcoroutines.experimental.GattConnection
-import kotlinx.coroutines.experimental.CancellationException
-import kotlinx.coroutines.experimental.TimeoutCancellationException
-import kotlinx.coroutines.experimental.withTimeout
+import com.beepiz.bluetooth.gattcoroutines.GattConnection
+import kotlinx.coroutines.*
 import splitties.systemservices.bluetoothManager
 import splitties.toast.toast
 import timber.log.Timber
 
 @RequiresApi(18)
-fun deviceFor(macAddress: String): BluetoothDevice = bluetoothManager.adapter.getRemoteDevice(macAddress)
+fun deviceFor(macAddress: String): BluetoothDevice =
+    bluetoothManager.adapter.getRemoteDevice(macAddress)
 
 /**
  * Connects to the device, discovers services, executes [block] and finally closes the connection.
  */
 @RequiresApi(18)
+@UseExperimental(ObsoleteCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 suspend inline fun BluetoothDevice.useBasic(
-        connectionTimeoutInMillis: Long = 5000L,
-        block: (GattConnection, List<BluetoothGattService>) -> Unit
+    connectionTimeoutInMillis: Long = 5000L,
+    block: (GattConnection, List<BluetoothGattService>) -> Unit
 ) {
     val deviceConnection = GattConnection(this)
     try {
