@@ -176,7 +176,7 @@ into your root project `build.gradle` file:
 ```groovy
 allProjects {
     ext {
-        blegattcoroutines_version = '0.1.0'
+        blegattcoroutines_version = '0.2.0'
     }
 }
 ```
@@ -201,7 +201,7 @@ allProjects {
         maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
     }
     ext {
-        blegattcoroutines_version = '0.1.0-SNAPSHOT' // Change this line
+        blegattcoroutines_version = '0.2.0-SNAPSHOT' // Change this line
     }
 }
 ```
