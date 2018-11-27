@@ -211,23 +211,23 @@ internal class GattConnectionImpl(
         }
 
         override fun onReadRemoteRssi(gatt: BG, rssi: Int, status: Int) {
-            rssiChannel.send(rssi, status)
+            rssiChannel.launchAndSendResponse(rssi, status)
         }
 
         override fun onServicesDiscovered(gatt: BG, status: Int) {
-            servicesDiscoveryChannel.send(gatt.services, status)
+            servicesDiscoveryChannel.launchAndSendResponse(gatt.services, status)
         }
 
         override fun onCharacteristicRead(gatt: BG, characteristic: BGC, status: Int) {
-            readChannel.send(characteristic, status)
+            readChannel.launchAndSendResponse(characteristic, status)
         }
 
         override fun onCharacteristicWrite(gatt: BG, characteristic: BGC, status: Int) {
-            writeChannel.send(characteristic, status)
+            writeChannel.launchAndSendResponse(characteristic, status)
         }
 
         override fun onReliableWriteCompleted(gatt: BG, status: Int) {
-            reliableWriteChannel.send(Unit, status)
+            reliableWriteChannel.launchAndSendResponse(Unit, status)
         }
 
         override fun onCharacteristicChanged(gatt: BG, characteristic: BGC) {
@@ -235,19 +235,19 @@ internal class GattConnectionImpl(
         }
 
         override fun onDescriptorRead(gatt: BG, descriptor: BGD, status: Int) {
-            readDescChannel.send(descriptor, status)
+            readDescChannel.launchAndSendResponse(descriptor, status)
         }
 
         override fun onDescriptorWrite(gatt: BG, descriptor: BGD, status: Int) {
-            writeDescChannel.send(descriptor, status)
+            writeDescChannel.launchAndSendResponse(descriptor, status)
         }
 
         override fun onMtuChanged(gatt: BG, mtu: Int, status: Int) {
-            mtuChannel.send(mtu, status)
+            mtuChannel.launchAndSendResponse(mtu, status)
         }
 
         override fun onPhyRead(gatt: BG, txPhy: Int, rxPhy: Int, status: Int) {
-            phyReadChannel.send(
+            phyReadChannel.launchAndSendResponse(
                 GattConnection.Phy(
                     txPhy,
                     rxPhy
@@ -292,11 +292,9 @@ internal class GattConnectionImpl(
      * This code is currently not fault tolerant. The channel is irrevocably closed if the GATT
      * status is not success.
      */
-    private fun <E> SendChannel<GattResponse<E>>.send(e: E, status: Int) {
-        val response =
-            GattResponse(e, status)
+    private fun <E> SendChannel<GattResponse<E>>.launchAndSendResponse(e: E, status: Int) {
         launch {
-            send(response)
+            send(GattResponse(e, status))
         }
     }
 
