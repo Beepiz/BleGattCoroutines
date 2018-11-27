@@ -1,4 +1,4 @@
-package com.beepiz.bluetooth.gattcoroutines.experimental
+package com.beepiz.bluetooth.gattcoroutines
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
@@ -22,6 +22,7 @@ import java.util.*
  *
  * **For production apps, see [stateChangeChannel].**
  */
+@ExperimentalBleGattCoroutinesCoroutinesApi
 interface GattConnection {
     companion object {
         @RequiresApi(18)

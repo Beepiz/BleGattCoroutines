@@ -1,4 +1,4 @@
-package com.beepiz.bluetooth.gattcoroutines.experimental
+package com.beepiz.bluetooth.gattcoroutines
 
 import android.bluetooth.*
 import android.os.Build.VERSION.SDK_INT
@@ -16,9 +16,10 @@ import kotlin.coroutines.CoroutineContext
 @RequiresApi(18)
 private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 
+@RequiresApi(18)
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
-@RequiresApi(18)
+@ExperimentalBleGattCoroutinesCoroutinesApi
 internal class GattConnectionImpl(
     private val bluetoothDevice: BluetoothDevice,
     private val connectionSettings: GattConnection.ConnectionSettings
@@ -101,7 +102,9 @@ internal class GattConnectionImpl(
     }
 
     override fun close(notifyStateChangeChannel: Boolean) {
-        closeInternal(notifyStateChangeChannel, ConnectionClosedException())
+        closeInternal(notifyStateChangeChannel,
+            ConnectionClosedException()
+        )
     }
 
     private fun closeInternal(notifyStateChangeChannel: Boolean, cause: ConnectionClosedException) {
@@ -112,7 +115,10 @@ internal class GattConnectionImpl(
             isConnected = false
             if (notifyStateChangeChannel) {
                 stateChangeBroadcastChannel.offer(
-                    GattConnection.StateChange(STATUS_SUCCESS, BluetoothProfile.STATE_DISCONNECTED)
+                    GattConnection.StateChange(
+                        STATUS_SUCCESS,
+                        BluetoothProfile.STATE_DISCONNECTED
+                    )
                 )
             }
         } catch (ignored: ConnectionClosedException) {
@@ -196,7 +202,12 @@ internal class GattConnectionImpl(
             when (status) {
                 STATUS_SUCCESS -> isConnected = newState == BluetoothProfile.STATE_CONNECTED
             }
-            stateChangeBroadcastChannel.offer(GattConnection.StateChange(status, newState))
+            stateChangeBroadcastChannel.offer(
+                GattConnection.StateChange(
+                    status,
+                    newState
+                )
+            )
         }
 
         override fun onReadRemoteRssi(gatt: BG, rssi: Int, status: Int) {
@@ -236,7 +247,11 @@ internal class GattConnectionImpl(
         }
 
         override fun onPhyRead(gatt: BG, txPhy: Int, rxPhy: Int, status: Int) {
-            phyReadChannel.send(GattConnection.Phy(txPhy, rxPhy), status)
+            phyReadChannel.send(
+                GattConnection.Phy(
+                    txPhy,
+                    rxPhy
+                ), status)
         }
     }
 
@@ -267,7 +282,9 @@ internal class GattConnectionImpl(
             checkNotClosed()
             requireGatt().operation().checkOperationInitiationSucceeded()
             val response = ch.receive()
-            if (response.isSuccess) response.e else throw OperationFailedException(response.status)
+            if (response.isSuccess) response.e else throw OperationFailedException(
+                response.status
+            )
         }
     }
 
@@ -276,7 +293,8 @@ internal class GattConnectionImpl(
      * status is not success.
      */
     private fun <E> SendChannel<GattResponse<E>>.send(e: E, status: Int) {
-        val response = GattResponse(e, status)
+        val response =
+            GattResponse(e, status)
         launch {
             send(response)
         }
@@ -289,7 +307,9 @@ internal class GattConnectionImpl(
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun checkNotClosed() {
-        if (isClosed) throw ConnectionClosedException(closedException)
+        if (isClosed) throw ConnectionClosedException(
+            closedException
+        )
     }
 
     private class GattResponse<out E>(val e: E, val status: Int) {

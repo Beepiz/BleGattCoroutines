@@ -1,6 +1,6 @@
 package com.beepiz.blegattcoroutines.sample.common.extensions
 
-import com.beepiz.bluetooth.gattcoroutines.experimental.GattConnection
+import com.beepiz.bluetooth.gattcoroutines.GattConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi

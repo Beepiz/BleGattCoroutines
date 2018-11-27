@@ -1,8 +1,11 @@
-package com.beepiz.blegattcoroutines.experimental.genericaccess
+package com.beepiz.blegattcoroutines.genericaccess
+
+import com.beepiz.bluetooth.gattcoroutines.ExperimentalBleGattCoroutinesCoroutinesApi
 
 /**
  * Constants definitions from [official docs](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.gap.appearance.xml).
  */
+@ExperimentalBleGattCoroutinesCoroutinesApi
 object Appearance {
     const val UNKNOWN: Short = 0
     const val GENERIC_PHONE: Short = 64 // Generic category

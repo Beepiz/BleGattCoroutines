@@ -1,7 +1,7 @@
 package com.beepiz.blegattcoroutines.sample.common
 
 import android.support.annotation.RequiresApi
-import com.beepiz.blegattcoroutines.experimental.genericaccess.GenericAccess
+import com.beepiz.blegattcoroutines.genericaccess.GenericAccess
 import com.beepiz.blegattcoroutines.sample.common.extensions.deviceFor
 import com.beepiz.blegattcoroutines.sample.common.extensions.useBasic
 import kotlinx.coroutines.Job

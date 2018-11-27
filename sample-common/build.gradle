@@ -63,5 +63,6 @@ dependencies {
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
         freeCompilerArgs += ["-Xuse-experimental=kotlin.Experimental"]
+        freeCompilerArgs += ["-Xuse-experimental=com.beepiz.bluetooth.gattcoroutines.ExperimentalBleGattCoroutinesCoroutinesApi"]
     }
 }
