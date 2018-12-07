@@ -21,7 +21,7 @@ private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 @ExperimentalCoroutinesApi
 @ExperimentalBleGattCoroutinesCoroutinesApi
 internal class GattConnectionImpl(
-    private val bluetoothDevice: BluetoothDevice,
+    override val bluetoothDevice: BluetoothDevice,
     private val connectionSettings: GattConnection.ConnectionSettings
 ) : GattConnection, CoroutineScope {
     private val job = Job()
