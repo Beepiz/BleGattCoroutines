@@ -46,6 +46,8 @@ interface GattConnection {
         }
     }
 
+    val bluetoothDevice: BluetoothDevice
+
     val isConnected: Boolean
     /**
      * Suspends until a connection is established with the target device, or throws if an error
