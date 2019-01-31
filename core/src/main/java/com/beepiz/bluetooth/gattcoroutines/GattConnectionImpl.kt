@@ -197,6 +197,11 @@ internal class GattConnectionImpl(
         readPhy().let { true }
     }
 
+    @RequiresApi(21)
+    override suspend fun requestMtu(mtu: Int) = gattRequest(mtuChannel) {
+        requestMtu(mtu)
+    }
+
     private val callback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BG, status: Int, newState: Int) {
             when (status) {
