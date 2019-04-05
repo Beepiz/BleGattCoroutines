@@ -47,5 +47,3 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
         freeCompilerArgs += ["-Xuse-experimental=kotlin.Experimental"]
     }
 }
-
-apply from: '../publish.gradle'
