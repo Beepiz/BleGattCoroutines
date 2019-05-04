@@ -22,6 +22,8 @@ kotlin {
         }
         getByName("commonMain").dependencies {
             api(kotlin("stdlib-common"))
+            api(project(":core"))
+            api(project(":genericaccess"))
         }
         getByName("androidMain").dependencies {
             with(Libs) {
@@ -32,7 +34,8 @@ kotlin {
                     timber,
                     kotlinX.coroutines.android,
                     splitties.pack.androidBaseWithViewsDsl,
-                    splitties.checkedlazy
+                    splitties.checkedlazy,
+                    splitties.archLifecycle
                 )
             }.forEach { api(it) }
         }
