@@ -3,6 +3,7 @@ package com.beepiz.bluetooth.gattcoroutines
 import android.bluetooth.*
 import android.os.Build.VERSION.SDK_INT
 import androidx.annotation.RequiresApi
+import com.beepiz.bluetooth.gattcoroutines.extensions.offerCatching
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.sync.Mutex
@@ -48,8 +49,8 @@ internal class GattConnectionImpl(
     private val isConnectedBroadcastChannel = ConflatedBroadcastChannel(false)
     private val isConnectedChannel get() = isConnectedBroadcastChannel.openSubscription()
     override var isConnected: Boolean
-        get() = !isClosed && isConnectedBroadcastChannel.value
-        private set(value) = isConnectedBroadcastChannel.offer(value).let { Unit }
+        get() = runCatching { !isClosed && isConnectedBroadcastChannel.value }.getOrDefault(false)
+        private set(value) = isConnectedBroadcastChannel.offerCatching(value).let { Unit }
     private var isClosed = false
     private var closedException: ConnectionClosedException? = null
     private val stateChangeBroadcastChannel =
@@ -102,30 +103,20 @@ internal class GattConnectionImpl(
     }
 
     override fun close(notifyStateChangeChannel: Boolean) {
-        closeInternal(notifyStateChangeChannel,
-            ConnectionClosedException()
-        )
+        closeInternal(notifyStateChangeChannel, ConnectionClosedException())
     }
 
     private fun closeInternal(notifyStateChangeChannel: Boolean, cause: ConnectionClosedException) {
         closedException = cause
         bluetoothGatt?.close()
         isClosed = true
-        try {
-            isConnected = false
-            if (notifyStateChangeChannel) {
-                stateChangeBroadcastChannel.offer(
-                    GattConnection.StateChange(
-                        STATUS_SUCCESS,
-                        BluetoothProfile.STATE_DISCONNECTED
-                    )
-                )
-            }
-        } catch (ignored: ConnectionClosedException) {
-            // isConnected property is delegated by a channel that throws if already closed,
-            // but we don't need the exception to be thrown again here, so we ignore it.
-            // We do the same for stateChangeBroadcastChannel.offer(…) call.
-        }
+        isConnected = false
+        if (notifyStateChangeChannel) stateChangeBroadcastChannel.offerCatching(
+            element = GattConnection.StateChange(
+                status = STATUS_SUCCESS,
+                newState = BluetoothProfile.STATE_DISCONNECTED
+            )
+        )
         isConnectedBroadcastChannel.close(cause)
         rssiChannel.close(cause)
         servicesDiscoveryChannel.close(cause)
@@ -202,7 +193,7 @@ internal class GattConnectionImpl(
             when (status) {
                 STATUS_SUCCESS -> isConnected = newState == BluetoothProfile.STATE_CONNECTED
             }
-            stateChangeBroadcastChannel.offer(
+            stateChangeBroadcastChannel.offerCatching(
                 GattConnection.StateChange(
                     status,
                     newState
@@ -251,7 +242,8 @@ internal class GattConnectionImpl(
                 GattConnection.Phy(
                     txPhy,
                     rxPhy
-                ), status)
+                ), status
+            )
         }
     }
 
@@ -305,9 +297,7 @@ internal class GattConnectionImpl(
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun checkNotClosed() {
-        if (isClosed) throw ConnectionClosedException(
-            closedException
-        )
+        if (isClosed) throw ConnectionClosedException(closedException)
     }
 
     private class GattResponse<out E>(val e: E, val status: Int) {
