@@ -115,7 +115,7 @@ fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch 
             Log.d(tag, it.print(printCharacteristics = true))
         }
     } finally {
-        deviceConnection.close() // Close when no longer used. Also triggers disconnect by default.NOT optional 
+        deviceConnection.close() // Close when no longer used. Also triggers disconnect by default. 
     }
 }
 ```
