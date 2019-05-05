@@ -47,7 +47,11 @@ feedback while you're using this library.**
 
 _Please, open an issue if something can be improved. If you just want to
 tell the author what you're doing with this library, feel free to reach out
-via [Twitter](https://twitter.com/Louis_CAD) DM, or public tweet._
+via [Twitter](https://twitter.com/Louis_CAD) DM, public tweet._
+
+You can also join the discussion on Kotlin's Slack in the
+[#beepiz-libraries](https://kotlinlang.slack.com/messages/beepiz-libraries) channel (you can get
+an invitation [here](http://slack.kotlinlang.org/)).
 
 ## Usage
 
@@ -171,44 +175,40 @@ into your root project `build.gradle` file:
 ```groovy
 allProjects {
     ext {
-        blegattcoroutines_version = '0.3.0'
+        blegattcoroutines_version = '0.4.0'
     }
 }
 ```
 Here are all the artifacts of this library. Just use the ones you need:
-```groovy
-implementation "com.beepiz.blegattcoroutines:blegattcoroutines-core:$blegattcoroutines_version"
-implementation "com.beepiz.blegattcoroutines:blegattcoroutines-genericaccess:$blegattcoroutines_version"
+```kotlin
+implementation("com.beepiz.blegattcoroutines:blegattcoroutines-core:$blegattcoroutines_version")
+implementation("com.beepiz.blegattcoroutines:blegattcoroutines-genericaccess:$blegattcoroutines_version")
 ```
-#### Snapshots
-Let's say you need a new feature or a fix that did
-not make it to a release yet:
 
-You can grab it in the latest snapshot by adding the
-snapshots repository and changing the library version to the -SNAPSHOT
-version in your root project `build.gradle` file:
+#### Dev versions
+Let's say you need a new feature or a fix that did not make it to a release yet:
+
+You can grab it in the latest dev version by adding the corresponding repository and
+changing the library version to the dev version you need in your root project `build.gradle` file:
 
 ```groovy
 allProjects {
     repositories {
         google()
-        jcenter() // Add snapshots repo below
-        maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local' }
+        jcenter() // Add dev versions repo below
+        maven { url 'https://dl.bintray.com/louiscad/splitties-dev' }
     }
     ext {
-        blegattcoroutines_version = '0.3.0-SNAPSHOT' // Change this line
+        splitties_version = '0.4.0-dev-001' // Change this line
     }
 }
 ```
-
-If you need to, you can browse the deployed snapshots [here on artifactory](
-https://oss.jfrog.org/webapp/#/artifacts/browse/tree/General/oss-snapshot-local/com/beepiz/blegattcoroutines
-).
 
 ### Other build systems
 For maven and alternative build-systems, check the [Bintray page](
 https://bintray.com/beepiz/maven/blegattcoroutines).
 
 ## New versions notifications
-To get notified for new versions, be sure to click on "Watch" on the
-[BleGattCoroutines Bintray page](https://bintray.com/beepiz/maven/blegattcoroutines).
+Releases are announced on GitHub, you can subscribe by[clicking on "Watch", then "Releases only"](
+https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository
+).
