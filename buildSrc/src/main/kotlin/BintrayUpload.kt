@@ -41,6 +41,7 @@ fun BintrayExtension.setupPublicationsUpload(
     }.map { it.name }.toTypedArray()
     setPublications(*publicationNames)
     pkg(closureOf<BintrayExtension.PackageConfig> {
+        userOrg = "beepiz"
         repo = if (isDevVersion) "maven-dev" else "maven"
         name = "blegattcoroutines"
         desc = Publishing.libraryDesc
