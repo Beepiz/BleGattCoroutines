@@ -9,6 +9,8 @@ import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import splitties.init.appCtx
+import splitties.lifecycle.coroutines.MainAndroid
+import splitties.lifecycle.coroutines.MainDispatcherPerformanceIssueWorkaround
 import splitties.mainthread.isMainThread
 import java.util.*
 import kotlin.coroutines.CoroutineContext
@@ -25,7 +27,8 @@ internal class GattConnectionImpl(
     private val connectionSettings: GattConnection.ConnectionSettings
 ) : GattConnection, CoroutineScope {
     private val job = Job()
-    override val coroutineContext: CoroutineContext = Dispatchers.Main + job
+    @UseExperimental(MainDispatcherPerformanceIssueWorkaround::class)
+    override val coroutineContext: CoroutineContext = Dispatchers.MainAndroid + job
 
     init {
         checkMainThread()

@@ -23,6 +23,7 @@ kotlin {
             api(Libs.kotlinX.coroutines.android)
             api(Libs.androidX.annotation)
             implementation(Libs.splitties.checkedlazy)
+            implementation(Libs.splitties.lifecycleCoroutines)
             implementation(Libs.splitties.mainthread)
             implementation(Libs.splitties.appctx)
         }
