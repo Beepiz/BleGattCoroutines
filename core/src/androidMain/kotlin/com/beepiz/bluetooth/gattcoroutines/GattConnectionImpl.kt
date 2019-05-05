@@ -14,7 +14,6 @@ import splitties.bitflags.hasFlag
 import splitties.init.appCtx
 import splitties.lifecycle.coroutines.MainAndroid
 import splitties.lifecycle.coroutines.MainDispatcherPerformanceIssueWorkaround
-import splitties.mainthread.isMainThread
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
@@ -34,7 +33,6 @@ internal class GattConnectionImpl(
     override val coroutineContext: CoroutineContext = Dispatchers.MainAndroid + job
 
     init {
-        checkMainThread()
         require(bluetoothDevice.type != BluetoothDevice.DEVICE_TYPE_CLASSIC) {
             "Can't connect GATT to Bluetooth Classic device!"
         }
@@ -70,7 +68,6 @@ internal class GattConnectionImpl(
     private fun requireGatt(): BG = bluetoothGatt ?: error("Call connect() first!")
 
     override suspend fun connect() {
-        checkMainThread()
         checkNotClosed()
         val gatt = bluetoothGatt
         if (gatt == null) {
@@ -102,7 +99,6 @@ internal class GattConnectionImpl(
         require(connectionSettings.allowAutoConnect) {
             "Disconnect is not supported when auto connect is not allowed. Use close() instead."
         }
-        checkMainThread()
         checkNotClosed()
         requireGatt().disconnect()
         isConnectedChannel.first { connected -> !connected }
@@ -305,7 +301,6 @@ internal class GattConnectionImpl(
         ch: ReceiveChannel<GattResponse<E>>,
         operation: BluetoothGatt.() -> Boolean
     ): E {
-        checkMainThread()
         checkNotClosed()
         val mutex = when {
             writeChannel === ch && reliableWriteOngoing -> reliableWritesMutex
@@ -329,11 +324,6 @@ internal class GattConnectionImpl(
         launch {
             send(GattResponse(e, status))
         }
-    }
-
-    @Suppress("NOTHING_TO_INLINE")
-    private inline fun checkMainThread() = check(isMainThread) {
-        "Only UI Thread is supported at the moment"
     }
 
     @Suppress("NOTHING_TO_INLINE")
