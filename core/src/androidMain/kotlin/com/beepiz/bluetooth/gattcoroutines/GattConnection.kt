@@ -148,6 +148,8 @@ interface GattConnection {
     @RequiresApi(26)
     suspend fun readPhy(): Phy
 
+    suspend fun requestMtu(mtu: Int): Int
+
     /**
      * **You should totally use this channel and implement the appropriate behavior for a production
      * app.**
