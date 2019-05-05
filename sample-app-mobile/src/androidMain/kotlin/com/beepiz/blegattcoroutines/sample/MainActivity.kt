@@ -5,16 +5,14 @@ import android.annotation.SuppressLint
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
 import com.beepiz.blegattcoroutines.sample.common.BleScanHeater
 import com.beepiz.blegattcoroutines.sample.common.MainViewModel
-import com.beepiz.blegattcoroutines.sample.common.register.registerWhileResumed
 import com.beepiz.blegattcoroutines.sample.common.register.registerWhileStarted
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import splitties.arch.lifecycle.ObsoleteSplittiesLifecycleApi
 import splitties.arch.lifecycle.activityScope
 import splitties.dimensions.dip
-import splitties.lifecycle.coroutines.createScope
 import splitties.lifecycle.coroutines.lifecycleScope
 import splitties.views.dsl.core.add
 import splitties.views.dsl.core.button
@@ -28,6 +26,7 @@ import splitties.views.padding
 @SuppressLint("SetTextI18n") // This is just a sample, English is enough.
 class MainActivity : AppCompatActivity() {
 
+    @UseExperimental(ObsoleteSplittiesLifecycleApi::class)
     private val viewModel by activityScope<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
