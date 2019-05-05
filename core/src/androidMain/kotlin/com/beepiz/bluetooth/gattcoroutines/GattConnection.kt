@@ -61,6 +61,7 @@ interface GattConnection {
     class ConnectionSettings(
         val autoConnect: Boolean = false,
         val allowAutoConnect: Boolean = autoConnect,
+        val disconnectOnClose: Boolean = true,
         val transport: Int = BluetoothDevice.TRANSPORT_AUTO,
         val phy: Int = BluetoothDevice.PHY_LE_1M_MASK
     ) {

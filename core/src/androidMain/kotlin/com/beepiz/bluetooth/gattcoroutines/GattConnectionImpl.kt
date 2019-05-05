@@ -110,6 +110,7 @@ internal class GattConnectionImpl(
 
     private fun closeInternal(notifyStateChangeChannel: Boolean, cause: ConnectionClosedException) {
         closedException = cause
+        if (connectionSettings.disconnectOnClose) bluetoothGatt?.disconnect()
         bluetoothGatt?.close()
         isClosed = true
         isConnected = false
