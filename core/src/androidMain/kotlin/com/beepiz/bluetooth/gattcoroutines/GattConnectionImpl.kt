@@ -240,8 +240,8 @@ internal class GattConnectionImpl(
         override fun onPhyRead(gatt: BG, txPhy: Int, rxPhy: Int, status: Int) {
             phyReadChannel.launchAndSendResponse(
                 GattConnection.Phy(
-                    txPhy,
-                    rxPhy
+                    tx = txPhy,
+                    rx = rxPhy
                 ), status
             )
         }
