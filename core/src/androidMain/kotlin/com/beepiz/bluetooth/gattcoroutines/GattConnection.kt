@@ -30,6 +30,9 @@ import java.util.*
  *
  * Note that [discoverServices] is usually the first call you want to make after calling [connect].
  *
+ * The default implementation of this interface can be instantiated with the [invoke] operator
+ * function.
+ *
  * **For production apps, see [stateChangeChannel].**
  */
 @ExperimentalBleGattCoroutinesCoroutinesApi
