@@ -101,20 +101,22 @@ https://github.com/Beepiz/BleGattCoroutines/blob/dd562dc49e5623bfc874dd9ff37d62d
 ```kotlin
 fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch {
     val deviceConnection = GattConnection(bluetoothDevice = this@logGattServices)
-    deviceConnection.connect() // Suspends until connection is established
-    val gattServices = deviceConnection.discoverServices() // Suspends until completed
-    gattServices.forEach {
-        it.characteristics.forEach {
-            try { 
-                deviceConnection.readCharacteristic(it) // Suspends until characteristic is read
-            } catch (e: Exception) {
-                Log.e(tag, "Couldn't read characteristic with uuid: ${it.uuid}", e)
+    try {
+        deviceConnection.connect() // Suspends until connection is established
+        val gattServices = deviceConnection.discoverServices() // Suspends until completed
+        gattServices.forEach {
+            it.characteristics.forEach {
+                try { 
+                    deviceConnection.readCharacteristic(it) // Suspends until characteristic is read
+                } catch (e: Exception) {
+                    Log.e(tag, "Couldn't read characteristic with uuid: ${it.uuid}", e)
+                }
             }
+            Log.d(tag, it.print(printCharacteristics = true))
         }
-        Log.v(tag, it.print(printCharacteristics = true))
+    } finally {
+        deviceConnection.close() // Close when no longer used. Also triggers disconnect by default.NOT optional 
     }
-    deviceConnection.disconnect() // Disconnection is optional. Useful if you don't close and reconnect later.
-    deviceConnection.close() // Close when no longer used it NOT optional 
 }
 ```
 
