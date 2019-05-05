@@ -2,6 +2,7 @@
 
 package com.beepiz.blegattcoroutines.sample.common.register
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.GenericLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -26,7 +27,8 @@ internal fun LifecycleOwner.registerWhile(
     if (registrables.isEmpty()) return
     val registerNow = lifecycle.currentState.isAtLeast(minState)
     if (registerNow) registrables.register()
-    lifecycle.addObserver(object : GenericLifecycleObserver {
+    lifecycle.addObserver(@SuppressLint("RestrictedApi")
+    object : GenericLifecycleObserver {
         var registered = registerNow
         override fun onStateChanged(owner: LifecycleOwner, event: Lifecycle.Event) {
             val shouldBeRegistered = lifecycle.currentState.isAtLeast(minState)
