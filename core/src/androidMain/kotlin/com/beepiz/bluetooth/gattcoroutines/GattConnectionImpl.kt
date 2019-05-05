@@ -8,7 +8,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import splitties.exceptions.illegal
 import splitties.init.appCtx
 import splitties.mainthread.isMainThread
 import java.util.*
@@ -61,7 +60,7 @@ internal class GattConnectionImpl(
     override val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
 
     private var bluetoothGatt: BG? = null
-    private fun requireGatt(): BG = bluetoothGatt ?: illegal("Call connect() first!")
+    private fun requireGatt(): BG = bluetoothGatt ?: error("Call connect() first!")
 
     override suspend fun connect() {
         checkMainThread()
@@ -81,7 +80,7 @@ internal class GattConnectionImpl(
                     SDK_INT >= 23 -> device.connectGatt(appCtx, autoConnect, callback, transport)
                     else -> device.connectGatt(appCtx, autoConnect, callback)
                 }
-            } ?: illegal("No BluetoothGatt instance returned. Is Bluetooth supported and enabled?")
+            } ?: error("No BluetoothGatt instance returned. Is Bluetooth supported and enabled?")
         } else {
             require(connectionSettings.allowAutoConnect) {
                 "Connecting more than once would implicitly enable auto connect, which is not" +
