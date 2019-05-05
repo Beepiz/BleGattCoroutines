@@ -5,7 +5,7 @@ import com.beepiz.bluetooth.gattcoroutines.BGC
 import com.beepiz.bluetooth.gattcoroutines.ExperimentalBleGattCoroutinesCoroutinesApi
 import com.beepiz.bluetooth.gattcoroutines.GattConnection
 import com.beepiz.bluetooth.gattcoroutines.extensions.requireCharacteristic
-import java.util.*
+import java.util.UUID
 import kotlin.experimental.and
 
 /**

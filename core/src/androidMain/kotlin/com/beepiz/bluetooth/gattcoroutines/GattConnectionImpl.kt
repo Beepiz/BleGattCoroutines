@@ -1,20 +1,36 @@
 package com.beepiz.bluetooth.gattcoroutines
 
-import android.bluetooth.*
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattService
+import android.bluetooth.BluetoothProfile
 import android.os.Build.VERSION.SDK_INT
 import androidx.annotation.RequiresApi
 import com.beepiz.bluetooth.gattcoroutines.GattConnection.Companion.clientCharacteristicConfiguration
 import com.beepiz.bluetooth.gattcoroutines.extensions.offerCatching
 import com.beepiz.bluetooth.gattcoroutines.extensions.withCloseHandler
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.filter
+import kotlinx.coroutines.channels.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import splitties.bitflags.hasFlag
 import splitties.init.appCtx
 import splitties.lifecycle.coroutines.MainAndroid
 import splitties.lifecycle.coroutines.MainDispatcherPerformanceIssueWorkaround
-import java.util.*
+import java.util.UUID
 import kotlin.coroutines.CoroutineContext
 
 @RequiresApi(18)

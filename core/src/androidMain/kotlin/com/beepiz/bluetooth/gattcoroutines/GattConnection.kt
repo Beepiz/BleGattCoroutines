@@ -11,7 +11,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.withTimeout
-import java.util.*
+import java.util.UUID
 
 /**
  * The entry point of BluetoothGatt with coroutines.
