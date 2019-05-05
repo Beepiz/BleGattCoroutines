@@ -22,10 +22,11 @@ kotlin {
         getByName("androidMain").dependencies {
             api(Libs.kotlinX.coroutines.android)
             api(Libs.androidX.annotation)
+            implementation(Libs.splitties.appctx)
+            implementation(Libs.splitties.bitflags)
             implementation(Libs.splitties.checkedlazy)
             implementation(Libs.splitties.lifecycleCoroutines)
             implementation(Libs.splitties.mainthread)
-            implementation(Libs.splitties.appctx)
         }
         all {
             languageSettings.apply {

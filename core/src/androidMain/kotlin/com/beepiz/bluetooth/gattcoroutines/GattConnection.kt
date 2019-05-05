@@ -3,10 +3,12 @@ package com.beepiz.bluetooth.gattcoroutines
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import androidx.annotation.RequiresApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.withTimeout
 import java.util.*
@@ -40,6 +42,19 @@ interface GattConnection {
             bluetoothDevice: BluetoothDevice,
             connectionSettings: ConnectionSettings = ConnectionSettings()
         ): GattConnection = GattConnectionImpl(bluetoothDevice, connectionSettings)
+
+        /**
+         * The characteristic used to enable notifications on the remote device in the
+         * [setCharacteristicNotificationsEnabledOnRemoteDevice] function.
+         *
+         * Sources:
+         * - [Android sample](https://github.com/googlesamples/android-BluetoothLeGatt/blob/74c0006b9e87112d09bc6ed2cb3fcb51b07af4a4/Application/src/main/java/com/example/android/bluetoothlegatt/SampleGattAttributes.java#L27)
+         * - [Official Bluetooth website](https://www.bluetooth.com/specifications/gatt/descriptors/)
+         * (look for `0x2902` or "Client Characteristic Configuration")
+         */
+        @JvmField
+        val clientCharacteristicConfiguration: UUID =
+            UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
     }
 
     @SuppressLint("InlinedApi")
@@ -116,6 +131,9 @@ interface GattConnection {
     suspend fun discoverServices(): List<BluetoothGattService>
 
     /**
+     * **Note:** You can use [openNotificationSubscription] that automatically calls this function
+     * for you.
+     *
      * Enable or disable notifications/indications for the passed [characteristic].
      * Once notifications are enabled for a characteristic, the [notifyChannel] will receive updated
      * characteristic if the remote device indicates that is has changed.
@@ -125,6 +143,40 @@ interface GattConnection {
      * 7 on Android 4.4, and 15 on Android 5.0+.
      */
     fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean)
+
+    /**
+     * Enables notifications for that [characteristic] client-side (you still need to enable it
+     * on the remote device) and returns a [ReceiveChannel] that will get the notifications for that
+     * characteristic only.
+     *
+     * By default, [disableNotificationsOnChannelClose] is true, and will cause the notifications
+     * to be disabled client-side when the channel is closed/consumed.
+     *
+     * **IMPORTANT**: On most BLE devices, you'll need to enable notifications on the remote device
+     * too. You can do so with the [setCharacteristicNotificationsEnabledOnRemoteDevice] function.
+     *
+     * You can enable notifications on the remote device before or after calling this function, both
+     * ways, notifications will be able to arrive once enabling on remote device completes.
+     */
+    fun openNotificationSubscription(
+        characteristic: BGC,
+        disableNotificationsOnChannelClose: Boolean = true
+    ): ReceiveChannel<BGC>
+
+    /**
+     * Checks that the passed [characteristic] supports notifications (it should come from
+     * [discoverServices]), and writes the [clientCharacteristicConfiguration] with
+     * [BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE] if [enable] is true, or
+     * [BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE] otherwise.
+     *
+     * If successful, notifications for that characteristic should be enabled on the remote device
+     * and you can now receive them from [openNotificationSubscription] (or from [notifyChannel] if
+     * you called [setCharacteristicNotificationsEnabled] beforehand).
+     */
+    suspend fun setCharacteristicNotificationsEnabledOnRemoteDevice(
+        characteristic: BGC,
+        enable: Boolean
+    )
 
     /**
      * This function requires that service discovery has been completed
@@ -168,7 +220,18 @@ interface GattConnection {
 
     /**
      * Receives all characteristic update notifications.
-     * See [setCharacteristicNotificationsEnabled].
+     *
+     * If you need to get the notifications of only a specific characteristic, you may want to use
+     * the [openNotificationSubscription] function instead.
+     *
+     * Since version 0.4.0, in the default implementation, this channel is backed by a
+     * [BroadcastChannel], which means you can have multiple consumers as each time you get this
+     * property, a new subscription is opened.
+     *
+     * For characteristic notifications to come in this channel, you need to enable it on
+     * client-side (using [setCharacteristicNotificationsEnabled]), and they also need to be enabled
+     * on the remote device (you can enable it with the
+     * [setCharacteristicNotificationsEnabledOnRemoteDevice] function).
      */
     val notifyChannel: ReceiveChannel<BGC>
 

@@ -3,11 +3,14 @@ package com.beepiz.bluetooth.gattcoroutines
 import android.bluetooth.*
 import android.os.Build.VERSION.SDK_INT
 import androidx.annotation.RequiresApi
+import com.beepiz.bluetooth.gattcoroutines.GattConnection.Companion.clientCharacteristicConfiguration
 import com.beepiz.bluetooth.gattcoroutines.extensions.offerCatching
+import com.beepiz.bluetooth.gattcoroutines.extensions.withCloseHandler
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import splitties.bitflags.hasFlag
 import splitties.init.appCtx
 import splitties.lifecycle.coroutines.MainAndroid
 import splitties.lifecycle.coroutines.MainDispatcherPerformanceIssueWorkaround
@@ -42,7 +45,7 @@ internal class GattConnectionImpl(
     private val readChannel = Channel<GattResponse<BGC>>()
     private val writeChannel = Channel<GattResponse<BGC>>()
     private val reliableWriteChannel = Channel<GattResponse<Unit>>()
-    private val characteristicChangedChannel = Channel<BGC>()
+    private val characteristicChangedChannel = BroadcastChannel<BGC>(1)
     private val readDescChannel = Channel<GattResponse<BGD>>()
     private val writeDescChannel = Channel<GattResponse<BGD>>()
     private val mtuChannel = Channel<GattResponse<Int>>()
@@ -60,7 +63,8 @@ internal class GattConnectionImpl(
 
     override val stateChangeChannel get() = stateChangeBroadcastChannel.openSubscription()
 
-    override val notifyChannel: ReceiveChannel<BGC> get() = characteristicChangedChannel
+    override val notifyChannel: ReceiveChannel<BGC>
+        get() = characteristicChangedChannel.openSubscription()
 
     private var bluetoothGatt: BG? = null
     private fun requireGatt(): BG = bluetoothGatt ?: error("Call connect() first!")
@@ -151,6 +155,39 @@ internal class GattConnectionImpl(
             .checkOperationInitiationSucceeded()
     }
 
+    override suspend fun setCharacteristicNotificationsEnabledOnRemoteDevice(
+        characteristic: BGC,
+        enable: Boolean
+    ) {
+        require(characteristic.properties.hasFlag(BGC.PROPERTY_NOTIFY)) {
+            "This characteristic doesn't support notification or doesn't come from discoverServices()."
+        }
+        val descriptor: BGD? = characteristic.getDescriptor(clientCharacteristicConfiguration)
+        requireNotNull(descriptor) {
+            "This characteristic misses the client characteristic configuration descriptor."
+        }
+        descriptor.value = if (enable) {
+            BGD.ENABLE_NOTIFICATION_VALUE
+        } else BGD.DISABLE_NOTIFICATION_VALUE
+        writeDescriptor(descriptor)
+    }
+
+    override fun openNotificationSubscription(
+        characteristic: BGC,
+        disableNotificationsOnChannelClose: Boolean
+    ): ReceiveChannel<BGC> {
+        require(characteristic.properties.hasFlag(BGC.PROPERTY_NOTIFY)) {
+            "This characteristic doesn't support notification or doesn't come from discoverServices()."
+        }
+        setCharacteristicNotificationsEnabled(characteristic, enable = true)
+        val notificationChannel = characteristicChangedChannel.openSubscription().filter {
+            it.uuid == characteristic.uuid
+        }
+        return if (disableNotificationsOnChannelClose) notificationChannel.withCloseHandler {
+            setCharacteristicNotificationsEnabled(characteristic, enable = false)
+        } else notificationChannel
+    }
+
     override fun getService(uuid: UUID): BluetoothGattService? = requireGatt().getService(uuid)
 
     override suspend fun readCharacteristic(characteristic: BGC) = gattRequest(readChannel) {
@@ -201,10 +238,7 @@ internal class GattConnectionImpl(
                 STATUS_SUCCESS -> isConnected = newState == BluetoothProfile.STATE_CONNECTED
             }
             stateChangeBroadcastChannel.offerCatching(
-                GattConnection.StateChange(
-                    status,
-                    newState
-                )
+                GattConnection.StateChange(status = status, newState = newState)
             )
         }
 
