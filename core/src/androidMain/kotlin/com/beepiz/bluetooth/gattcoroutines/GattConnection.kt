@@ -18,6 +18,14 @@ import java.util.*
  * call [connect] when you need to perform operations, perform your operations, and when you're
  * done, call [close] or [disconnect].
  *
+ * All the functions of this interface can throw one of the following exceptions:
+ * - [ConnectionClosedException]
+ * - [GattException] (either [OperationFailedException] or [OperationInitiationFailedException])
+ *
+ * You should catch them and react appropriately (fixing your code, fixing the device if you can,
+ * closing the connection and retrying (with linear/exponential backoff), and/or inform the user,
+ * allowing manual retry if appropriate and/or cancel.
+ *
  * Note that [discoverServices] is usually the first call you want to make after calling [connect].
  *
  * **For production apps, see [stateChangeChannel].**
