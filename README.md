@@ -175,7 +175,7 @@ into your root project `build.gradle` file:
 ```groovy
 allProjects {
     ext {
-        blegattcoroutines_version = '0.4.0'
+        blegattcoroutines_version = '0.4.1'
     }
 }
 ```
@@ -199,7 +199,7 @@ allProjects {
         maven { url 'https://dl.bintray.com/louiscad/splitties-dev' }
     }
     ext {
-        splitties_version = '0.4.0-dev-001' // Change this line
+        splitties_version = '0.5.0-dev-001' // Change this line
     }
 }
 ```

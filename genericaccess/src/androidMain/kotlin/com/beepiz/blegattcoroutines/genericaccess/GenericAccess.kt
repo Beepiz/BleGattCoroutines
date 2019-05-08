@@ -13,14 +13,15 @@ import kotlin.experimental.and
  */
 @RequiresApi(18)
 @ExperimentalBleGattCoroutinesCoroutinesApi
+@UseExperimental(ExperimentalUnsignedTypes::class)
 object GenericAccess {
 
-    val uuid = gattUuid(0x1800)
-    val deviceNameUuid = gattUuid(0x2A00) // UTF-8
+    val uuid: UUID = gattUuid(0x1800U)
+    val deviceNameUuid: UUID = gattUuid(0x2A00U) // UTF-8
     /** See constants in [Appearance]. */
-    val appearanceUuid = gattUuid(0x2A01) // 16 bit
+    val appearanceUuid: UUID = gattUuid(0x2A01U) // 16 bit
 
-    suspend fun GattConnection.readDeviceName() = read(deviceNameUuid)
+    suspend fun GattConnection.readDeviceName(): Unit = read(deviceNameUuid)
     suspend fun GattConnection.readAppearance() = read(appearanceUuid)
 
     val GattConnection.deviceName: String get() = get(deviceNameUuid).getStringValue(0)
@@ -42,22 +43,19 @@ object GenericAccess {
     /**
      * Generates fully-fledged UUID from passed [shorthand] and standard Bluetooth UUID common base.
      */
-    private fun gattUuid(shorthand: Short): UUID {
-        val assignedNumberMask = 0x0000_FFFF_0000_0000L // Prevents negative shorthand side-effects.
-        val shifted16bits = shorthand.toLong() shl 32 and assignedNumberMask
+    private fun gattUuid(shorthand: UShort): UUID {
+        val shifted16bits = shorthand.toULong() shl 32
         val mostSigBits = commonBaseMostSigBits or shifted16bits
-        return UUID(mostSigBits, commonBaseLeastSigBits)
+        return UUID(mostSigBits.toLong(), commonBaseLeastSigBits.toLong())
     }
 
     /**
      * Most significant (left) part of the common base UUID: `00000000-0000-1000-8000-00805f9b34fb`.
      */
-    private const val commonBaseMostSigBits = 0x0000_0000_0000_1000L
+    private const val commonBaseMostSigBits: ULong = 0x0000_0000_0000_1000U
 
     /**
      * Least significant (right) part of the common base UUID: `00000000-0000-1000-8000-00805f9b34fb`.
-     *
-     * Unsigned notation: `0x8000_00805f9b34fb`
      */
-    private const val commonBaseLeastSigBits = 0x0000_00805f9b34fbL or (0x8000L shl 48)
+    private const val commonBaseLeastSigBits: ULong = 0x8000_00805f9b34fbU
 }

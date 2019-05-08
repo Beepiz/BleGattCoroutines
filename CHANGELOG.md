@@ -1,6 +1,14 @@
 # Change log for BleGattCoroutines
 
+## Version 0.4.1 (2019-05-08)
+
+Version 0.4.0 publication was broken because gradle metadata was not enabled, and any
+usage would lead to gradle sync and gradle build fails on consumer projects.
+
+This has now been fixed. Sorry for the inconvenience.
+
 ## Version 0.4.0 (2019-05-05)
+**Publication of this version is broken, use 0.4.1 or newer instead.**
 Compiled with Kotlin 1.3.31 (and kotlinx.coroutines 1.2.1).
 
 This is an important release for BleGattCoroutines that includes fixes, improvements & new features.

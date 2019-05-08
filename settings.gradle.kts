@@ -5,3 +5,5 @@ include(
     ":sample-app-wear",
     ":sample-app-mobile"
 )
+
+enableFeaturePreview("GRADLE_METADATA")
