@@ -1,8 +1,9 @@
 # BleGattCoroutines
-**Make Gatt Great Again!** This library allows easy and safer usage of
-BluetoothGatt in Android. It has also been tested successfully on
-**Android Wear**, with the sample included in this repository. It should
-work similarly on other Android variants such as Android Things.
+**Functional Bluetooth GATT** This library allows easy and safer usage of
+BluetoothGatt in Android. Instead of having callbacks to manage, you just
+need to call functions. It has also been tested successfully on
+**Wear OS**, with the sample included in this repository. It should
+work similarly on other Android variants such as Android TV.
 
 It does so by taking advantage of the excellent coroutines feature in the
 Kotlin programming language that allows to write asynchronous code in a
@@ -103,7 +104,7 @@ Here's a basic example that just logs the characteristics (using
 https://github.com/Beepiz/BleGattCoroutines/blob/dd562dc49e5623bfc874dd9ff37d62db63c04932/sample-common/src/main/java/com/beepiz/blegattcoroutines/sample/common/extensions/GattPrint.kt#L15)
 ):
 ```kotlin
-fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") = launch {
+suspend fun BluetoothDevice.logGattServices(tag: String = "BleGattCoroutines") {
     val deviceConnection = GattConnection(bluetoothDevice = this@logGattServices)
     try {
         deviceConnection.connect() // Suspends until connection is established
@@ -135,7 +136,7 @@ you want.
 private val myEddystoneUrlBeaconMacAddress = "F2:D6:43:93:70:7A"
 private val defaultDeviceMacAddress = myEddystoneUrlBeaconMacAddress
 
-fun logNameAndAppearance(deviceMacAddress: String = defaultDeviceMacAddress) = launch {
+suspend fun logNameAndAppearance(deviceMacAddress: String = defaultDeviceMacAddress) {
     deviceFor(deviceMacAddress).useBasic { device, services ->
         services.forEach { Timber.d("Service found with UUID: ${it.uuid}") }
         with(GenericAccess) {
@@ -161,7 +162,7 @@ D/MainViewModel$logNameAndAppearance: Device name: eddystone Config
 I/MainViewModel$logNameAndAppearance: Disconnected!
 I/MainViewModel$logNameAndAppearance: Closed!
 ```
-This proves our library is working and that **WE MADE GATT GREAT AGAIN!**
+This proves our library is working and that Bluetooth GATT can be functional.
 
 ## Download
 
