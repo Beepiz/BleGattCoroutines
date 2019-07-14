@@ -7,9 +7,6 @@ fun AndroidLibraryExtension.setDefaults() {
     defaultConfig {
         minSdkVersion(14)
         targetSdkVersion(ProjectVersions.androidSdk)
-        versionCode = 1
-        versionName = ProjectVersions.thisLibrary
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         getByName("release") {
