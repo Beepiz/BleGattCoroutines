@@ -3,7 +3,14 @@
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
+/.idea/gradle.xml
+/.idea/modules.xml
+/.idea/misc.xml
+/.idea/vcs.xml
+/.idea/caches
 .DS_Store
 /build
 /captures
 .externalNativeBuild
+buildSrc/build
+buildSrc/.gradle
