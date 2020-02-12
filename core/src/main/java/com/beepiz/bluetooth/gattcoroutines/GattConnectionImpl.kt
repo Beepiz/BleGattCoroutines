@@ -154,7 +154,7 @@ internal class GattConnectionImpl(
         }
 
     override fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean) {
-        requireGatt().setCharacteristicNotification(characteristic, enable)
+        if (isConnected) requireGatt().setCharacteristicNotification(characteristic, enable)
             .checkOperationInitiationSucceeded()
     }
 
