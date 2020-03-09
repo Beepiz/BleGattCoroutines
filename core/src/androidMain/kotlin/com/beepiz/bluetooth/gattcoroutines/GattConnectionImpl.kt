@@ -276,7 +276,7 @@ internal class GattConnectionImpl(
         }
 
         override fun onCharacteristicChanged(gatt: BG, characteristic: BGC) {
-            launch { characteristicChangedChannel.send(characteristic) }
+            runBlocking { characteristicChangedChannel.send(characteristic) }
         }
 
         override fun onDescriptorRead(gatt: BG, descriptor: BGD, status: Int) {
