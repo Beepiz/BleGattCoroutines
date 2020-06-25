@@ -59,7 +59,7 @@ internal class GattConnectionImpl(
     private val readChannel = Channel<GattResponse<BGC>>()
     private val writeChannel = Channel<GattResponse<BGC>>()
     private val reliableWriteChannel = Channel<GattResponse<Unit>>()
-    private val characteristicChangedChannel = BroadcastChannel<BGC>(1)
+    private val characteristicChangedChannel = BroadcastChannel<BGC>(BroadcastChannel.BUFFERED)
     private val readDescChannel = Channel<GattResponse<BGD>>()
     private val writeDescChannel = Channel<GattResponse<BGD>>()
     private val mtuChannel = Channel<GattResponse<Int>>()
