@@ -1,19 +1,21 @@
 package com.beepiz.blegattcoroutines.genericaccess
 
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 import com.beepiz.bluetooth.gattcoroutines.BGC
 import com.beepiz.bluetooth.gattcoroutines.ExperimentalBleGattCoroutinesCoroutinesApi
 import com.beepiz.bluetooth.gattcoroutines.GattConnection
 import com.beepiz.bluetooth.gattcoroutines.extensions.requireCharacteristic
 import java.util.UUID
 import kotlin.experimental.and
+import android.Manifest.permission.BLUETOOTH_CONNECT as BluetoothConnectPermission
 
 /**
  * See [official docs here](https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.service.generic_access.xml).
  */
 @RequiresApi(18)
+@Suppress("InlinedApi")
 @ExperimentalBleGattCoroutinesCoroutinesApi
-@UseExperimental(ExperimentalUnsignedTypes::class)
 object GenericAccess {
 
     val uuid: UUID = gattUuid(0x1800U)
@@ -21,7 +23,11 @@ object GenericAccess {
     /** See constants in [Appearance]. */
     val appearanceUuid: UUID = gattUuid(0x2A01U) // 16 bit
 
+
+    @RequiresPermission(BluetoothConnectPermission)
     suspend fun GattConnection.readDeviceName(): Unit = read(deviceNameUuid)
+
+    @RequiresPermission(BluetoothConnectPermission)
     suspend fun GattConnection.readAppearance() = read(appearanceUuid)
 
     val GattConnection.deviceName: String get() = get(deviceNameUuid).getStringValue(0)
@@ -36,6 +42,7 @@ object GenericAccess {
         return requireCharacteristic(uuid, characteristicUuid)
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
     private suspend fun GattConnection.read(characteristicUuid: UUID) {
         readCharacteristic(get(characteristicUuid))
     }

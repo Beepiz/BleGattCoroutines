@@ -1,16 +1,17 @@
 package com.beepiz.bluetooth.gattcoroutines
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import androidx.annotation.RequiresApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.withTimeout
+import androidx.annotation.RequiresPermission
+import com.beepiz.bluetooth.gattcoroutines.GattConnection.Companion.invoke
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.flow.*
 import java.util.UUID
 
 /**
@@ -36,11 +37,12 @@ import java.util.UUID
  * **For production apps, see [stateChangeChannel].**
  */
 @ExperimentalBleGattCoroutinesCoroutinesApi
+@Suppress("InlinedApi")
 interface GattConnection {
     companion object {
+
         @RequiresApi(18)
-        @ExperimentalCoroutinesApi
-        @ObsoleteCoroutinesApi
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
         operator fun invoke(
             bluetoothDevice: BluetoothDevice,
             connectionSettings: ConnectionSettings = ConnectionSettings()
@@ -76,6 +78,7 @@ interface GattConnection {
     val bluetoothDevice: BluetoothDevice
 
     val isConnected: Boolean
+
     /**
      * Suspends until a connection is established with the target device, or throws if an error
      * happens.
@@ -92,6 +95,7 @@ interface GattConnection {
      * connections too. Call [close] when you don't need the connection anymore, or [disconnect]
      * if you don't need the connection to stay active for some amount of time.
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun connect()
 
     /**
@@ -100,6 +104,7 @@ interface GattConnection {
      * Useful if you want to disconnect from the device for a relatively short time and connect
      * back later using this same instance.
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun disconnect()
 
     /**
@@ -108,9 +113,11 @@ interface GattConnection {
      * This [GattConnection] instance is no longer usable after this has been called, and all
      * coroutines suspended on calls to this instance will receive a cancellation signal.
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun close(notifyStateChangeChannel: Boolean = false)
 
     /** Reads the RSSI for a connected remote device */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun readRemoteRssi(): Int
 
     /**
@@ -124,6 +131,7 @@ interface GattConnection {
      * Throws an [OperationInitiationFailedException] if the device is not connected.
      */
     @RequiresApi(21)
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun requestPriority(priority: Int)
 
     /**
@@ -132,6 +140,7 @@ interface GattConnection {
      * Discovers services offered by the remote device as well as its characteristics and
      * its descriptors.
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun discoverServices(): List<BluetoothGattService>
 
     /**
@@ -146,6 +155,7 @@ interface GattConnection {
      * [this video](https://youtu.be/qx55Sa8UZAQ?t=28m30s) is **4 on Android 4.3**,
      * 7 on Android 4.4, and 15 on Android 5.0+.
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean)
 
     /**
@@ -162,6 +172,7 @@ interface GattConnection {
      * You can enable notifications on the remote device before or after calling this function, both
      * ways, notifications will be able to arrive once enabling on remote device completes.
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun openNotificationSubscription(
         characteristic: BGC,
         disableNotificationsOnChannelClose: Boolean = true
@@ -177,6 +188,7 @@ interface GattConnection {
      * and you can now receive them from [openNotificationSubscription] (or from [notifyChannel] if
      * you called [setCharacteristicNotificationsEnabled] beforehand).
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun setCharacteristicNotificationsEnabledOnRemoteDevice(
         characteristic: BGC,
         enable: Boolean
@@ -194,16 +206,27 @@ interface GattConnection {
      */
     fun getService(uuid: UUID): BluetoothGattService?
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun readCharacteristic(characteristic: BGC): BGC
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun writeCharacteristic(characteristic: BGC): BGC
+
     @RequiresApi(19)
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun reliableWrite(writeOperations: suspend GattConnection.() -> Unit)
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun readDescriptor(desc: BGD): BGD
+
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun writeDescriptor(desc: BGD): BGD
+
     @RequiresApi(26)
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun readPhy(): Phy
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     suspend fun requestMtu(mtu: Int): Int
 
     /**
@@ -220,6 +243,9 @@ interface GattConnection {
      * gets out of range for example. It's then up to you to decide to retry [connect] a few times,
      * periodically, alert the user or call [close].
      */
+    val stateChanges: SharedFlow<StateChange>
+
+    @Deprecated("Use stateChanges which returns a Flow", ReplaceWith("stateChanges"))
     val stateChangeChannel: ReceiveChannel<StateChange>
 
     /**
@@ -237,6 +263,9 @@ interface GattConnection {
      * on the remote device (you can enable it with the
      * [setCharacteristicNotificationsEnabledOnRemoteDevice] function).
      */
+    val notifications: Flow<BGC>
+
+    @Deprecated("Use notifications which returns a Flow", ReplaceWith("notifications"))
     val notifyChannel: ReceiveChannel<BGC>
 
     data class StateChange internal constructor(val status: Int, val newState: Int)

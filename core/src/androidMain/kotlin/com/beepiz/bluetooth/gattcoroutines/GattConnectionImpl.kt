@@ -7,46 +7,33 @@ import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothProfile
 import android.os.Build.VERSION.SDK_INT
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 import com.beepiz.bluetooth.gattcoroutines.GattConnection.Companion.clientCharacteristicConfiguration
-import com.beepiz.bluetooth.gattcoroutines.extensions.offerCatching
-import com.beepiz.bluetooth.gattcoroutines.extensions.withCloseHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ConflatedBroadcastChannel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import splitties.bitflags.hasFlag
 import splitties.init.appCtx
-import splitties.lifecycle.coroutines.MainAndroid
-import splitties.lifecycle.coroutines.MainDispatcherPerformanceIssueWorkaround
 import java.util.UUID
 import kotlin.coroutines.CoroutineContext
+import android.Manifest.permission.BLUETOOTH_CONNECT as BluetoothConnectPermission
 
 @RequiresApi(18)
 private const val STATUS_SUCCESS = BluetoothGatt.GATT_SUCCESS
 
 @RequiresApi(18)
-@ObsoleteCoroutinesApi
-@ExperimentalCoroutinesApi
-@ExperimentalBleGattCoroutinesCoroutinesApi
-internal class GattConnectionImpl(
+@Suppress("InlinedApi")
+@OptIn(ExperimentalBleGattCoroutinesCoroutinesApi::class)
+internal class GattConnectionImpl
+@RequiresPermission(BluetoothConnectPermission)
+constructor(
     override val bluetoothDevice: BluetoothDevice,
     private val connectionSettings: GattConnection.ConnectionSettings
 ) : GattConnection, CoroutineScope {
     private val job = Job()
-    @UseExperimental(MainDispatcherPerformanceIssueWorkaround::class)
-    override val coroutineContext: CoroutineContext = Dispatchers.MainAndroid + job
+    override val coroutineContext: CoroutineContext = Dispatchers.Main + job
 
     init {
         require(bluetoothDevice.type != BluetoothDevice.DEVICE_TYPE_CLASSIC) {
@@ -59,37 +46,47 @@ internal class GattConnectionImpl(
     private val readChannel = Channel<GattResponse<BGC>>()
     private val writeChannel = Channel<GattResponse<BGC>>()
     private val reliableWriteChannel = Channel<GattResponse<Unit>>()
-    private val characteristicChangedChannel = BroadcastChannel<BGC>(1)
+    private val characteristicChangedFlow = MutableSharedFlow<BGC>(extraBufferCapacity = 1)
     private val readDescChannel = Channel<GattResponse<BGD>>()
     private val writeDescChannel = Channel<GattResponse<BGD>>()
     private val mtuChannel = Channel<GattResponse<Int>>()
     private val phyReadChannel = Channel<GattResponse<GattConnection.Phy>>()
 
-    private val isConnectedBroadcastChannel = ConflatedBroadcastChannel(false)
+    private val isConnectedMutableFlow = MutableStateFlow(false)
 
-    private val isConnectedFlow
-        @UseExperimental(FlowPreview::class) //TODO: Copy it to dodge any future breaking changes
-        get() = isConnectedBroadcastChannel.asFlow()
+    private val isConnectedFlow = isConnectedMutableFlow.asStateFlow()
 
     override var isConnected: Boolean
-        get() = runCatching { !isClosed && isConnectedBroadcastChannel.value }.getOrDefault(false)
-        private set(value) = isConnectedBroadcastChannel.offerCatching(value).let { Unit }
+        get() = isClosed.not() && isConnectedMutableFlow.value
+        private set(value) {
+            isConnectedMutableFlow.value = value
+        }
 
     private var isClosed = false
 
     private var closedException: ConnectionClosedException? = null
 
-    private val stateChangeBroadcastChannel =
-        ConflatedBroadcastChannel<GattConnection.StateChange>()
+    private val stateChangesMutableFlow = MutableSharedFlow<GattConnection.StateChange>(replay = 1)
 
-    override val stateChangeChannel get() = stateChangeBroadcastChannel.openSubscription()
+    override val stateChanges = stateChangesMutableFlow.asSharedFlow()
 
+    @Suppress("OverridingDeprecatedMember")
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val stateChangeChannel: ReceiveChannel<GattConnection.StateChange>
+        get() = produce { stateChangesMutableFlow.collect { send(it) } }
+
+    override val notifications: Flow<BGC>
+        get() = characteristicChangedFlow
+
+    @Suppress("OverridingDeprecatedMember")
+    @OptIn(ExperimentalCoroutinesApi::class)
     override val notifyChannel: ReceiveChannel<BGC>
-        get() = characteristicChangedChannel.openSubscription()
+        get() = produce { notifications.collect { send(it) } }
 
     private var bluetoothGatt: BG? = null
     private fun requireGatt(): BG = bluetoothGatt ?: error("Call connect() first!")
 
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun connect() {
         checkNotClosed()
         val gatt = bluetoothGatt
@@ -118,6 +115,7 @@ internal class GattConnectionImpl(
         isConnectedFlow.first { connected -> connected }
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun disconnect() {
         require(connectionSettings.allowAutoConnect) {
             "Disconnect is not supported when auto connect is not allowed. Use close() instead."
@@ -127,54 +125,58 @@ internal class GattConnectionImpl(
         isConnectedFlow.first { connected -> !connected }
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
     override fun close(notifyStateChangeChannel: Boolean) {
         closeInternal(notifyStateChangeChannel, ConnectionClosedException())
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
     private fun closeInternal(notifyStateChangeChannel: Boolean, cause: ConnectionClosedException) {
         closedException = cause
         if (connectionSettings.disconnectOnClose) bluetoothGatt?.disconnect()
         bluetoothGatt?.close()
         isClosed = true
         isConnected = false
-        if (notifyStateChangeChannel) stateChangeBroadcastChannel.offerCatching(
-            element = GattConnection.StateChange(
+        if (notifyStateChangeChannel) stateChangesMutableFlow.tryEmit(
+            value = GattConnection.StateChange(
                 status = STATUS_SUCCESS,
                 newState = BluetoothProfile.STATE_DISCONNECTED
             )
         )
-        isConnectedBroadcastChannel.close(cause)
         rssiChannel.close(cause)
         servicesDiscoveryChannel.close(cause)
         readChannel.close(cause)
         writeChannel.close(cause)
         reliableWriteChannel.close(cause)
-        characteristicChangedChannel.close(cause)
         readDescChannel.close(cause)
         writeDescChannel.close(cause)
-        stateChangeBroadcastChannel.close(cause)
         job.cancel()
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun readRemoteRssi() = gattRequest(rssiChannel) {
         readRemoteRssi()
     }
 
     @RequiresApi(21)
+    @RequiresPermission(BluetoothConnectPermission)
     override fun requestPriority(priority: Int) {
         requireGatt().requestConnectionPriority(priority).checkOperationInitiationSucceeded()
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun discoverServices(): List<BluetoothGattService> =
         gattRequest(servicesDiscoveryChannel) {
             discoverServices()
         }
 
+    @RequiresPermission(BluetoothConnectPermission)
     override fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean) {
         requireGatt().setCharacteristicNotification(characteristic, enable)
             .checkOperationInitiationSucceeded()
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun setCharacteristicNotificationsEnabledOnRemoteDevice(
         characteristic: BGC,
         enable: Boolean
@@ -192,6 +194,8 @@ internal class GattConnectionImpl(
         writeDescriptor(descriptor)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @RequiresPermission(BluetoothConnectPermission)
     override fun openNotificationSubscription(
         characteristic: BGC,
         disableNotificationsOnChannelClose: Boolean
@@ -199,27 +203,34 @@ internal class GattConnectionImpl(
         require(characteristic.properties.hasFlag(BGC.PROPERTY_NOTIFY)) {
             "This characteristic doesn't support notification or doesn't come from discoverServices()."
         }
-        setCharacteristicNotificationsEnabled(characteristic, enable = true)
-        @UseExperimental(FlowPreview::class) //TODO: Copy it to dodge any future breaking changes.
-        val notificationChannel = characteristicChangedChannel.asFlow().filter {
-            it.uuid == characteristic.uuid
-        }.produceIn(this)
-        return if (disableNotificationsOnChannelClose) notificationChannel.withCloseHandler {
-            setCharacteristicNotificationsEnabled(characteristic, enable = false)
-        } else notificationChannel
+        return produce {
+            setCharacteristicNotificationsEnabled(characteristic, enable = true)
+            try {
+                characteristicChangedFlow.collect {
+                    if (it.uuid == characteristic.uuid) send(it)
+                }
+            } finally {
+                if (disableNotificationsOnChannelClose) {
+                    setCharacteristicNotificationsEnabled(characteristic, enable = false)
+                }
+            }
+        }
     }
 
     override fun getService(uuid: UUID): BluetoothGattService? = requireGatt().getService(uuid)
 
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun readCharacteristic(characteristic: BGC) = gattRequest(readChannel) {
         readCharacteristic(characteristic)
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun writeCharacteristic(characteristic: BGC) = gattRequest(writeChannel) {
         writeCharacteristic(characteristic)
     }
 
     @RequiresApi(19)
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun reliableWrite(writeOperations: suspend GattConnection.() -> Unit) =
         gattRequest(reliableWriteChannel) {
             try {
@@ -235,20 +246,24 @@ internal class GattConnectionImpl(
             }
         }
 
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun readDescriptor(desc: BGD) = gattRequest(readDescChannel) {
         readDescriptor(desc)
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun writeDescriptor(desc: BGD) = gattRequest(writeDescChannel) {
         writeDescriptor(desc)
     }
 
     @RequiresApi(26)
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun readPhy() = gattRequest(phyReadChannel) {
         readPhy().let { true }
     }
 
     @RequiresApi(21)
+    @RequiresPermission(BluetoothConnectPermission)
     override suspend fun requestMtu(mtu: Int) = gattRequest(mtuChannel) {
         requestMtu(mtu)
     }
@@ -258,7 +273,7 @@ internal class GattConnectionImpl(
             when (status) {
                 STATUS_SUCCESS -> isConnected = newState == BluetoothProfile.STATE_CONNECTED
             }
-            stateChangeBroadcastChannel.offerCatching(
+            stateChangesMutableFlow.tryEmit(
                 GattConnection.StateChange(status = status, newState = newState)
             )
         }
@@ -284,7 +299,7 @@ internal class GattConnectionImpl(
         }
 
         override fun onCharacteristicChanged(gatt: BG, characteristic: BGC) {
-            launch { characteristicChangedChannel.send(characteristic) }
+            launch { characteristicChangedFlow.emit(characteristic) }
         }
 
         override fun onDescriptorRead(gatt: BG, descriptor: BGD, status: Int) {
@@ -363,7 +378,7 @@ internal class GattConnectionImpl(
     init {
         val closeOnDisconnect = connectionSettings.allowAutoConnect.not()
         if (closeOnDisconnect) launch {
-            stateChangeChannel.consumeEach { stateChange ->
+            stateChanges.collect { stateChange ->
                 if (stateChange.newState == BluetoothProfile.STATE_DISCONNECTED) {
                     val cause =
                         ConnectionClosedException(messageSuffix = " because of disconnection")

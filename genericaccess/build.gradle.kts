@@ -1,37 +1,17 @@
-@file:Suppress("SpellCheckingInspection")
-
 plugins {
-    id("com.android.library")
-    kotlin("multiplatform")
-    `maven-publish`
-    id("com.jfrog.bintray")
-}
-
-android {
-    setDefaults()
+    lib
+    `lib-publish`
 }
 
 kotlin {
-    metadataPublication(project)
-    androidWithPublication(project)
     sourceSets {
         getByName("commonMain").dependencies {
-            api(project(":core"))
+            api(project(":blegattcoroutines-core"))
         }
         all {
             languageSettings.apply {
-                useExperimentalAnnotation("kotlin.Experimental")
+                optIn("kotlin.RequiresOptIn")
             }
         }
-    }
-}
-
-afterEvaluate {
-    publishing {
-        setupAllPublications(project)
-    }
-
-    bintray {
-        setupPublicationsUpload(project, publishing, skipMetadataPublication = true)
     }
 }
