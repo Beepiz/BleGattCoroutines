@@ -1,7 +1,11 @@
-object ProjectVersions {
-    const val androidBuildTools = "28.0.3"
-    const val androidSdk = 28
-    const val thisLibrary = "0.4.1"
-}
+import org.gradle.api.Project
 
-val isDevVersion = ProjectVersions.thisLibrary.contains("-dev-")
+object ProjectVersions {
+    const val androidSdk = 31
+
+    fun readVersion(
+        project: Project
+    ): String = project.providers.fileContents(
+        project.rootProject.layout.projectDirectory.file("version.txt")
+    ).asText.get().trim()
+}

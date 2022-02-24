@@ -6,7 +6,7 @@ import com.beepiz.bluetooth.gattcoroutines.BGC
 import com.beepiz.bluetooth.gattcoroutines.BGD
 import com.beepiz.bluetooth.gattcoroutines.ExperimentalBleGattCoroutinesCoroutinesApi
 import com.beepiz.bluetooth.gattcoroutines.GattConnection
-import java.util.*
+import java.util.UUID
 
 @RequiresApi(18)
 @ExperimentalBleGattCoroutinesCoroutinesApi

@@ -1,47 +1,25 @@
-@file:Suppress("SpellCheckingInspection")
-
 plugins {
-    id("com.android.library")
-    kotlin("multiplatform")
-    `maven-publish`
-    id("com.jfrog.bintray")
-}
-
-android {
-    setDefaults()
+    lib
+    `lib-publish`
 }
 
 kotlin {
-    metadataPublication(project)
-    androidWithPublication(project)
     sourceSets {
         getByName("commonMain").dependencies {
-            api(kotlin("stdlib-common"))
-            api(Libs.kotlinX.coroutines.coreCommon)
+            api(KotlinX.coroutines.core)
         }
         getByName("androidMain").dependencies {
-            api(Libs.kotlinX.coroutines.android)
-            api(Libs.androidX.annotation)
-            implementation(Libs.splitties.appctx)
-            implementation(Libs.splitties.bitflags)
-            implementation(Libs.splitties.checkedlazy)
-            implementation(Libs.splitties.lifecycleCoroutines)
-            implementation(Libs.splitties.mainthread)
+            api(AndroidX.annotation)
+            implementation(Splitties.appctx)
+            implementation(Splitties.bitflags)
+            implementation(Splitties.checkedlazy)
+            implementation(Splitties.lifecycleCoroutines)
+            implementation(Splitties.mainthread)
         }
         all {
             languageSettings.apply {
-                useExperimentalAnnotation("kotlin.Experimental")
+                optIn("kotlin.RequiresOptIn")
             }
         }
-    }
-}
-
-afterEvaluate {
-    publishing {
-        setupAllPublications(project)
-    }
-
-    bintray {
-        setupPublicationsUpload(project, publishing, skipMetadataPublication = true)
     }
 }
