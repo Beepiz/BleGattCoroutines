@@ -1,0 +1,62 @@
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+name: Publish to Sonatype Snapshots
+on:
+  workflow_dispatch:
+jobs:
+  windows-upload:
+    runs-on: windows-latest
+    if: 'false' # Disabled because not multiplatform yet.
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+      - name: Configure JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+      - name: Upload Windows x64 bits artifacts
+        run: >-
+          ./gradlew --scan --console=plain
+          publishMingwX64PublicationToSonatypeSnapshotsRepository
+  linux-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+      - name: Configure JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+      - name: Upload all artifacts Linux can build
+        run: >-
+          ./gradlew --scan --console=plain
+          publishAllPublicationsToSonatypeSnapshotsRepository
+  macos-upload:
+    runs-on: macos-latest
+    if: 'false' # Disabled because not multiplatform yet.
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+      - name: Configure JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+      - name: Upload Darwin artifacts
+        run: >-
+          ./gradlew --scan --console=plain
+          publishIosArm32PublicationToSonatypeSnapshotsRepository
+          publishIosArm64PublicationToSonatypeSnapshotsRepository
+          publishIosX64PublicationToSonatypeSnapshotsRepository
+          publishMacosX64PublicationToSonatypeSnapshotsRepository
+          publishWatchosArm32PublicationToSonatypeSnapshotsRepository
+          publishWatchosArm64PublicationToSonatypeSnapshotsRepository
+          publishWatchosX86PublicationToSonatypeSnapshotsRepository
+env:
+  GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx5g -XX:+UseParallelGC -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+  sonatype_username: ${{ secrets.SONATYPE_USERNAME }}
+  sonatype_password: ${{ secrets.SONATYPE_PASSWORD }}
+  GPG_key_id: ${{ secrets.GPG_KEY_ID }}
+  GPG_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+  GPG_private_password: ${{ secrets.GPG_PRIVATE_PASSWORD }}
