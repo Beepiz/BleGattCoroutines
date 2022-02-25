@@ -18,6 +18,7 @@ jobs:
       - id: create
         uses: nexus-actions/create-nexus-staging-repo@v1.1
         with:
+          base_url: "https://s01.oss.sonatype.org/service/local/"
           username: ${{ secrets.SONATYPE_USERNAME }}
           password: ${{ secrets.SONATYPE_PASSWORD }}
           staging_profile_id: ${{ secrets.SONATYPE_PROFILE_ID }}
@@ -48,6 +49,7 @@ jobs:
         if: ${{ needs.linux-upload.result != 'success' }}
         uses: nexus-actions/drop-nexus-staging-repo@v1
         with:
+          base_url: "https://s01.oss.sonatype.org/service/local/"
           username: ${{ secrets.SONATYPE_USERNAME }}
           password: ${{ secrets.SONATYPE_PASSWORD }}
           staging_repository_id: ${{ needs.create-staging-repository.outputs.repository_id }}
@@ -55,6 +57,7 @@ jobs:
         if: ${{ needs.linux-upload.result == 'success' }}
         uses: nexus-actions/release-nexus-staging-repo@v1.1
         with:
+          base_url: "https://s01.oss.sonatype.org/service/local/"
           username: ${{ secrets.SONATYPE_USERNAME }}
           password: ${{ secrets.SONATYPE_PASSWORD }}
           staging_repository_id: ${{ needs.create-staging-repository.outputs.repository_id }}
