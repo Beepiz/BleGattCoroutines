@@ -18,6 +18,7 @@ jobs:
       - id: create
         uses: nexus-actions/create-nexus-staging-repo@v1.1
         with:
+          base_url: "https://s01.oss.sonatype.org/service/local/"
           username: ${{ secrets.SONATYPE_USERNAME }}
           password: ${{ secrets.SONATYPE_PASSWORD }}
           staging_profile_id: ${{ secrets.SONATYPE_PROFILE_ID }}
@@ -35,26 +36,28 @@ jobs:
           java-version: '11'
       - name: Upload all artifacts Linux can build
         run: >-
-          ./gradlew --scan --console=plain
+          ./gradlew --scan --console=plain --no-configuration-cache
           publishAllPublicationsToMavenCentralStagingRepository
         env:
           sonatype_staging_repo_id: ${{ needs.create-staging-repository.outputs.repository_id }}
   finalize:
     runs-on: ubuntu-latest
-    needs: [linux-upload]
+    needs: [create-staging-repository, linux-upload]
     if: ${{ always() && needs.create-staging-repository.result == 'success' }}
     steps:
       - name: Discard staging repository
         if: ${{ needs.linux-upload.result != 'success' }}
         uses: nexus-actions/drop-nexus-staging-repo@v1
         with:
+          base_url: "https://s01.oss.sonatype.org/service/local/"
           username: ${{ secrets.SONATYPE_USERNAME }}
           password: ${{ secrets.SONATYPE_PASSWORD }}
           staging_repository_id: ${{ needs.create-staging-repository.outputs.repository_id }}
       - name: Release
         if: ${{ needs.linux-upload.result == 'success' }}
-        uses: nexus-actions/release-nexus-staging-repo@v1.1
+        uses: nexus-actions/release-nexus-staging-repo@v1.2
         with:
+          base_url: "https://s01.oss.sonatype.org/service/local/"
           username: ${{ secrets.SONATYPE_USERNAME }}
           password: ${{ secrets.SONATYPE_PASSWORD }}
           staging_repository_id: ${{ needs.create-staging-repository.outputs.repository_id }}

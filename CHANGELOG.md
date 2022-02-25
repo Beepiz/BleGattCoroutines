@@ -1,5 +1,23 @@
 # Change log for BleGattCoroutines
 
+## Version 0.5.0 (2022-02-25)
+
+### Updates
+
+BleGattCoroutines was using Deprecated kotlinx.coroutines APIs.
+Since this release, it is no longer the case, the library moved to shared flows to replace `BroadcastChannel` usages.
+
+### Deprecations
+
+The APIs that were returning a `ReceiveChannel` have been deprecated in favor of new APIs that return a `Flow` instead.
+We added `ReplaceWith` clauses, so Android Studio can do the replacements for you.
+
+### Fixes
+
+Previously, if you were using the `openNotificationSubscription` and the device got disconnected before the channel gets closed, the app would crash when the channel is closed.
+The `openNotificationSubscription` has been deprecated, delegating to its replacement, `notifications`, which will no longer crash the app in an unrecoverable way, throwing against the `Flow` collector instead, so that you can catch it if disconnection happens.
+See [the issue #58](https://github.com/Beepiz/BleGattCoroutines/issues/58) for details. 
+
 ## Version 0.4.1 (2019-05-08)
 
 Version 0.4.0 publication was broken because gradle metadata was not enabled, and any

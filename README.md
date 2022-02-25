@@ -1,4 +1,5 @@
 # BleGattCoroutines
+
 **Functional Bluetooth GATT** This library allows easy and safer usage of
 BluetoothGatt in Android. Instead of having callbacks to manage, you just
 need to call functions. It has also been tested successfully on
@@ -16,9 +17,13 @@ interacts with Bluetooth Low Energy GATT (General Attribute), that is, the
 connection part of the Bluetooth Low Energy standard.
 
 ## Why this library ?
+
 As we needed to have an Android app interact with a Bluetooth Low Energy
 device, we found the Android BluetoothGatt API and a few RxJava libraries
-built on top of it. Unfortunately, none suited our needs:
+built on top of it.
+
+Unfortunately, none suited our needs:
+
 - The vanilla Android BluetoothGatt API is extremely hard to get right,
 because you have to provide a single instance of what we call a "God
 Callback", that is, an instance of a class with overridable methods that
@@ -30,12 +35,10 @@ or other operation types are dispatched in the same callback method (like
 `onCharacteristicRead(…)`).
 - The RxJava libraries would mean we'd have to learn RxJava, which is known
 to have a steep learning curve, steeper than learning another programming
-language like Kotlin from Java experience, and steeper than learning Kotlin
-coroutines plus [understanding the kotlinx.coroutines library guide](
-https://github.com/Kotlin/kotlinx.coroutines/blob/master/coroutines-guide.md
-). Also, RxJava is a big library, even bigger if you have to use both version 1
-and version 2 in the same project. RxJava2 methods count is higher than the sum of
-Kotlin's stdlib and kotlinx.coroutines.
+language like Kotlin from Java experience, and steeper than learning [Kotlin](https://kotl.in) plus
+[coroutines](https://kotl.in/coroutines). Also, RxJava is a big library,
+even bigger if you have to use both version 1 and version 2 in the same project.
+RxJava2 methods count is higher than the sum of Kotlin's stdlib and kotlinx.coroutines.
 
 ## Experimental API
 
@@ -167,49 +170,43 @@ This proves our library is working and that Bluetooth GATT can be functional.
 ## Download
 
 ### Gradle instructions
-Make sure you have `jcenter()` in the repositories defined in your project's
-(root) `build.gradle` file (default for new Android Studio projects).
 
-Add the version of the library to not repeat yourself if you use multiple
-artifacts, and make sure their versions are in sync by adding an ext property
-into your root project `build.gradle` file:
-```groovy
-allProjects {
-    ext {
-        blegattcoroutines_version = '0.4.1'
-    }
-}
-```
-Here are all the artifacts of this library. Just use the ones you need:
+BleGattCoroutines is published on MavenCentral.
+
+The following artifacts are published, use the ones you need:
+
 ```kotlin
-implementation("com.beepiz.blegattcoroutines:blegattcoroutines-core:$blegattcoroutines_version")
-implementation("com.beepiz.blegattcoroutines:blegattcoroutines-genericaccess:$blegattcoroutines_version")
+implementation("com.beepiz.blegattcoroutines:blegattcoroutines-core:0.5.0")
+implementation("com.beepiz.blegattcoroutines:blegattcoroutines-genericaccess:0.5.0")
 ```
 
 #### Dev versions
+
 Let's say you need a new feature or a fix that did not make it to a release yet:
 
 You can grab it in the latest dev version by adding the corresponding repository and
 changing the library version to the dev version you need in your root project `build.gradle` file:
 
 ```groovy
-allProjects {
-    repositories {
-        google()
-        jcenter() // Add dev versions repo below
-        maven { url 'https://dl.bintray.com/louiscad/splitties-dev' }
-    }
-    ext {
-        splitties_version = '0.5.0-dev-001' // Change this line
+repositories {
+    google()
+    mavenCentral()
+    // Add the repo below:
+    maven(url = "https://s01.oss.sonatype.org/content/repositories/snapshots") {
+        mavenContent {
+            includeGroup("com.beepiz.blegattcoroutines")
+            snapshotsOnly()
+        }
     }
 }
+
+// Switch the version to a snapshot
+implementation("com.beepiz.blegattcoroutines:blegattcoroutines-core:0.5.1-SNAPSHOT")
+implementation("com.beepiz.blegattcoroutines:blegattcoroutines-genericaccess:0.5.1-SNAPSHOT")
 ```
 
-### Other build systems
-For maven and alternative build-systems, check the [Bintray page](
-https://bintray.com/beepiz/maven/blegattcoroutines).
-
 ## New versions notifications
-Releases are announced on GitHub, you can subscribe by[clicking on "Watch", then "Releases only"](
-https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository
+
+Releases are announced on GitHub, you can subscribe by[clicking on "Watch", then "Custom", then check "Releases"](
+https://docs.github.com/en/account-and-profile/managing-subscriptions-and-notifications-on-github/setting-up-notifications/configuring-notifications#configuring-your-watch-settings-for-an-individual-repository
 ).
