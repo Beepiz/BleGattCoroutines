@@ -17,7 +17,6 @@ import kotlinx.coroutines.sync.withLock
 import splitties.bitflags.hasFlag
 import splitties.init.appCtx
 import java.util.UUID
-import kotlin.coroutines.CoroutineContext
 import android.Manifest.permission.BLUETOOTH_CONNECT as BluetoothConnectPermission
 
 @RequiresApi(18)
@@ -31,9 +30,8 @@ internal class GattConnectionImpl
 constructor(
     override val bluetoothDevice: BluetoothDevice,
     private val connectionSettings: GattConnection.ConnectionSettings
-) : GattConnection, CoroutineScope {
-    private val job = Job()
-    override val coroutineContext: CoroutineContext = Dispatchers.Main + job
+) : GattConnection {
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     init {
         require(bluetoothDevice.type != BluetoothDevice.DEVICE_TYPE_CLASSIC) {
@@ -73,15 +71,15 @@ constructor(
     @Suppress("OverridingDeprecatedMember")
     @OptIn(ExperimentalCoroutinesApi::class)
     override val stateChangeChannel: ReceiveChannel<GattConnection.StateChange>
-        get() = produce { stateChangesMutableFlow.collect { send(it) } }
+        get() = coroutineScope.produce { stateChangesMutableFlow.collect { send(it) } }
 
-    override val notifications: Flow<BGC>
+    override val allNotifications: Flow<BGC>
         get() = characteristicChangedFlow
 
     @Suppress("OverridingDeprecatedMember")
     @OptIn(ExperimentalCoroutinesApi::class)
     override val notifyChannel: ReceiveChannel<BGC>
-        get() = produce { notifications.collect { send(it) } }
+        get() = coroutineScope.produce { allNotifications.collect { send(it) } }
 
     private var bluetoothGatt: BG? = null
     private fun requireGatt(): BG = bluetoothGatt ?: error("Call connect() first!")
@@ -150,7 +148,7 @@ constructor(
         reliableWriteChannel.close(cause)
         readDescChannel.close(cause)
         writeDescChannel.close(cause)
-        job.cancel()
+        coroutineScope.cancel()
     }
 
     @RequiresPermission(BluetoothConnectPermission)
@@ -172,8 +170,9 @@ constructor(
 
     @RequiresPermission(BluetoothConnectPermission)
     override fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean) {
-        requireGatt().setCharacteristicNotification(characteristic, enable)
-            .checkOperationInitiationSucceeded()
+        requireGatt().setCharacteristicNotification(characteristic, enable).also {
+            if (enable) it.checkOperationInitiationSucceeded()
+        }
     }
 
     @RequiresPermission(BluetoothConnectPermission)
@@ -194,6 +193,24 @@ constructor(
         writeDescriptor(descriptor)
     }
 
+    @RequiresPermission(BluetoothConnectPermission)
+    override fun notifications(
+        characteristic: BGC,
+        enableLocallyIfNeeded: Boolean
+    ): Flow<BGC> {
+        require(characteristic.properties.hasFlag(BGC.PROPERTY_NOTIFY)) {
+            "This characteristic doesn't support notification or doesn't come from discoverServices()."
+        }
+        return callbackFlow {
+            if (enableLocallyIfNeeded) launch {
+                notificationsTracker.keepNotificationsEnabled(characteristic)
+            }
+            characteristicChangedFlow.collect {
+                if (it.uuid == characteristic.uuid) send(it)
+            }
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     @RequiresPermission(BluetoothConnectPermission)
     override fun openNotificationSubscription(
@@ -203,16 +220,12 @@ constructor(
         require(characteristic.properties.hasFlag(BGC.PROPERTY_NOTIFY)) {
             "This characteristic doesn't support notification or doesn't come from discoverServices()."
         }
-        return produce {
-            setCharacteristicNotificationsEnabled(characteristic, enable = true)
-            try {
-                characteristicChangedFlow.collect {
-                    if (it.uuid == characteristic.uuid) send(it)
-                }
-            } finally {
-                if (disableNotificationsOnChannelClose) {
-                    setCharacteristicNotificationsEnabled(characteristic, enable = false)
-                }
+        return coroutineScope.produce {
+            notifications(
+                characteristic = characteristic,
+                enableLocallyIfNeeded = disableNotificationsOnChannelClose
+            ).collect {
+                send(it)
             }
         }
     }
@@ -299,7 +312,7 @@ constructor(
         }
 
         override fun onCharacteristicChanged(gatt: BG, characteristic: BGC) {
-            launch { characteristicChangedFlow.emit(characteristic) }
+            coroutineScope.launch { characteristicChangedFlow.emit(characteristic) }
         }
 
         override fun onDescriptorRead(gatt: BG, descriptor: BGD, status: Int) {
@@ -361,10 +374,16 @@ constructor(
      * status is not success.
      */
     private fun <E> SendChannel<GattResponse<E>>.launchAndSendResponse(e: E, status: Int) {
-        launch {
+        coroutineScope.launch {
             send(GattResponse(e, status))
         }
     }
+
+    private val notificationsTracker =
+        CharacteristicNotificationsTracker { characteristic, enable ->
+            @Suppress("MissingPermission") // Invoked through methods that have the permission.
+            setCharacteristicNotificationsEnabled(characteristic, enable)
+        }
 
     @Suppress("NOTHING_TO_INLINE")
     private inline fun checkNotClosed() {
@@ -377,7 +396,7 @@ constructor(
 
     init {
         val closeOnDisconnect = connectionSettings.allowAutoConnect.not()
-        if (closeOnDisconnect) launch {
+        if (closeOnDisconnect) coroutineScope.launch {
             stateChanges.collect { stateChange ->
                 if (stateChange.newState == BluetoothProfile.STATE_DISCONNECTED) {
                     val cause =

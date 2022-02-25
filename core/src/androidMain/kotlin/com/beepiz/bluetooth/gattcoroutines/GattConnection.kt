@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothGattService
 import androidx.annotation.RequiresApi
@@ -159,19 +160,34 @@ interface GattConnection {
     fun setCharacteristicNotificationsEnabled(characteristic: BGC, enable: Boolean)
 
     /**
-     * Enables notifications for that [characteristic] client-side (you still need to enable it
-     * on the remote device) and returns a [ReceiveChannel] that will get the notifications for that
-     * characteristic only.
+     * Returns a [Flow] of [BluetoothGattCharacteristic] that forwards the notifications sent by
+     * the remote device for the passed characteristic.
      *
-     * By default, [disableNotificationsOnChannelClose] is true, and will cause the notifications
-     * to be disabled client-side when the channel is closed/consumed.
+     * If [enableLocallyIfNeeded] is true, which is the default, when at least one `Flow`
+     * returned by this function for this [characteristic] is being collected,
+     * notifications will be enabled client-side for it.
      *
      * **IMPORTANT**: On most BLE devices, you'll need to enable notifications on the remote device
      * too. You can do so with the [setCharacteristicNotificationsEnabledOnRemoteDevice] function.
      *
      * You can enable notifications on the remote device before or after calling this function, both
-     * ways, notifications will be able to arrive once enabling on remote device completes.
+     * ways, notifications will be able to arrive once enabling on the remote device completes.
      */
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun notifications(
+        characteristic: BGC,
+        enableLocallyIfNeeded: Boolean = true
+    ): Flow<BGC>
+
+    /**
+     * Channel version of the [notifications] function. Will be removed in a future release.
+     */
+    @Deprecated(
+        message = "Use the notifications instead",
+        replaceWith = ReplaceWith(
+            "notifications(characteristic, enableLocallyIfNeeded = disableNotificationsOnChannelClose)"
+        )
+    )
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun openNotificationSubscription(
         characteristic: BGC,
@@ -252,20 +268,20 @@ interface GattConnection {
      * Receives all characteristic update notifications.
      *
      * If you need to get the notifications of only a specific characteristic, you may want to use
-     * the [openNotificationSubscription] function instead.
-     *
-     * Since version 0.4.0, in the default implementation, this channel is backed by a
-     * [BroadcastChannel], which means you can have multiple consumers as each time you get this
-     * property, a new subscription is opened.
+     * the [allNotifications] function instead.
      *
      * For characteristic notifications to come in this channel, you need to enable it on
      * client-side (using [setCharacteristicNotificationsEnabled]), and they also need to be enabled
      * on the remote device (you can enable it with the
      * [setCharacteristicNotificationsEnabledOnRemoteDevice] function).
+     *
+     * Note that if you don't call [setCharacteristicNotificationsEnabled], this [Flow] will still
+     * emit any notifications that might be incoming if there is a [Flow] returned by the
+     * [notifications] function that is being collected.
      */
-    val notifications: Flow<BGC>
+    val allNotifications: Flow<BGC>
 
-    @Deprecated("Use notifications which returns a Flow", ReplaceWith("notifications"))
+    @Deprecated("Use notifications which returns a Flow", ReplaceWith("allNotifications"))
     val notifyChannel: ReceiveChannel<BGC>
 
     data class StateChange internal constructor(val status: Int, val newState: Int)
