@@ -42,7 +42,7 @@ jobs:
           sonatype_staging_repo_id: ${{ needs.create-staging-repository.outputs.repository_id }}
   finalize:
     runs-on: ubuntu-latest
-    needs: [linux-upload]
+    needs: [create-staging-repository, linux-upload]
     if: ${{ always() && needs.create-staging-repository.result == 'success' }}
     steps:
       - name: Discard staging repository
