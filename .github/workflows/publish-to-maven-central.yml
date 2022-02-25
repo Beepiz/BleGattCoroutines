@@ -55,7 +55,7 @@ jobs:
           staging_repository_id: ${{ needs.create-staging-repository.outputs.repository_id }}
       - name: Release
         if: ${{ needs.linux-upload.result == 'success' }}
-        uses: nexus-actions/release-nexus-staging-repo@v1.1
+        uses: nexus-actions/release-nexus-staging-repo@v1.2
         with:
           base_url: "https://s01.oss.sonatype.org/service/local/"
           username: ${{ secrets.SONATYPE_USERNAME }}
