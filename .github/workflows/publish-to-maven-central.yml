@@ -1,0 +1,66 @@
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
+name: Publish to Maven Central
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened]
+    paths:
+      - 'version.txt'
+    branches:
+      - release
+jobs:
+  create-staging-repository:
+    name: Create staging repository
+    runs-on: ubuntu-latest
+    outputs:
+      repository_id: ${{ steps.create.outputs.repository_id }}
+    steps:
+      - id: create
+        uses: nexus-actions/create-nexus-staging-repo@v1.1
+        with:
+          username: ${{ secrets.SONATYPE_USERNAME }}
+          password: ${{ secrets.SONATYPE_PASSWORD }}
+          staging_profile_id: ${{ secrets.SONATYPE_PROFILE_ID }}
+          description: ${{ github.repository }}/${{ github.workflow }}#${{ github.run_number }}
+  linux-upload:
+    runs-on: ubuntu-latest
+    needs: [create-staging-repository]
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+      - name: Configure JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '11'
+      - name: Upload all artifacts Linux can build
+        run: >-
+          ./gradlew --scan --console=plain
+          publishAllPublicationsToMavenCentralStagingRepository
+        env:
+          sonatype_staging_repo_id: ${{ needs.create-staging-repository.outputs.repository_id }}
+  finalize:
+    runs-on: ubuntu-latest
+    needs: [linux-upload]
+    if: ${{ always() && needs.create-staging-repository.result == 'success' }}
+    steps:
+      - name: Discard staging repository
+        if: ${{ needs.linux-upload.result != 'success' }}
+        uses: nexus-actions/drop-nexus-staging-repo@v1
+        with:
+          username: ${{ secrets.SONATYPE_USERNAME }}
+          password: ${{ secrets.SONATYPE_PASSWORD }}
+          staging_repository_id: ${{ needs.create-staging-repository.outputs.repository_id }}
+      - name: Release
+        if: ${{ needs.linux-upload.result == 'success' }}
+        uses: nexus-actions/release-nexus-staging-repo@v1.1
+        with:
+          username: ${{ secrets.SONATYPE_USERNAME }}
+          password: ${{ secrets.SONATYPE_PASSWORD }}
+          staging_repository_id: ${{ needs.create-staging-repository.outputs.repository_id }}
+env:
+  sonatype_username: ${{ secrets.SONATYPE_USERNAME }}
+  sonatype_password: ${{ secrets.SONATYPE_PASSWORD }}
+  GPG_key_id: ${{ secrets.GPG_KEY_ID }}
+  GPG_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+  GPG_private_password: ${{ secrets.GPG_PRIVATE_PASSWORD }}
