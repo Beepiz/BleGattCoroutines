@@ -36,7 +36,7 @@ jobs:
           java-version: '11'
       - name: Upload all artifacts Linux can build
         run: >-
-          ./gradlew --scan --console=plain
+          ./gradlew --scan --console=plain --no-configuration-cache
           publishAllPublicationsToMavenCentralStagingRepository
         env:
           sonatype_staging_repo_id: ${{ needs.create-staging-repository.outputs.repository_id }}
